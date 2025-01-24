@@ -55,7 +55,7 @@ Este repositório contém o projeto desenvolvido como Trabalho de Conclusão de 
 2. **Instalação**:  
    - Clone este repositório:  
      ```bash
-     git clone https://github.com/seu-usuario/PrototipoERP.git
+     git clone https://github.com/GustavoSilvaCorrea/PrototipoERP.git
      ```  
    - Configure o arquivo `config.php` com as informações do banco de dados.  
 
