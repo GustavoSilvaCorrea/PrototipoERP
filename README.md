@@ -55,13 +55,13 @@ Este repositório contém o projeto desenvolvido como Trabalho de Conclusão de 
 2. **Instalação**:  
    - Clone este repositório:  
      ```bash
-     git clone https://github.com/seu-usuario/sistema-erp.git
+     git clone https://github.com/seu-usuario/PrototipoERP.git
      ```  
    - Configure o arquivo `config.php` com as informações do banco de dados.  
 
 3. **Execução**:  
    - Inicie o servidor local.  
-   - Acesse o sistema pelo navegador no endereço: `http://localhost/sistema-erp/`.  
+   - Acesse o sistema pelo navegador no endereço: `http://localhost/PrototipoERP/`.  
 
 4. **Banco de Dados**:  
    - Execute o script SQL disponível na pasta `database/` para criar as tabelas necessárias.  
