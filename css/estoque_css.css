@@ -1,0 +1,382 @@
+
+        /* Estilos da Página Inteira */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+
+        #cabecalho-main {
+            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom-style: hidden;
+            background-color: #44749D;
+            color: #fff;
+            padding: 1em;
+            text-align: center;
+            align-items: center;
+        }
+
+        #cabecalho-main .img_fun {
+            width: 20%;
+            margin: 2px;
+            padding: 2px;
+            border-radius: 50%;
+        }
+
+        #cabecalho-main h3 {
+            margin: 0 10px;
+            margin-left: auto;
+        }
+
+        #filtros {
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .inputs {
+            display: flex;
+            width: 100%;
+        }
+
+        #search {
+            flex: 1;
+            width: 300px;
+            font-weight: 800;
+            font-size: 20px;
+            border-radius: 50px;
+            border: 2px solid #dcdcdc;
+            margin-right: 10px;
+        }
+        
+
+        #tipo_prod {
+            background-color: #dcdcdc;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 20px 20px;
+            /* Ajustar o espaçamento interno */
+            max-width: 300px;
+            /* Limitar a largura máxima */
+        }
+
+        /* Estilos do Estoque */
+        #caixa-inventario {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        .inventory-box {
+            background-color: #333;
+            width: auto;
+            /* Tamanho fixo para cada caixa */
+            height: auto;
+            /* Altura fixa para cada caixa */
+            padding: 25px;
+            border: 3px solid #444;
+            border-radius: 15px;
+            margin: 10px;
+            position: relative;
+        }
+
+        .inventory-box:hover {
+            box-shadow: 10px 10px #44749D;
+
+        }
+
+        .inventory-box img {
+            width: 100%;
+            /* Modificado para ocupar toda a largura */
+            height: auto;
+            /* Para manter a proporção */
+            border: 3px solid #444;
+        }
+
+        #link {
+            display: flex;
+            justify-content: center;
+            text-decoration: none;
+            margin-top: 10px;
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            text-transform: uppercase;
+
+        }
+
+        #link:hover {
+            filter: drop-shadow(2px 2px 1px black);
+        }
+
+        .quantity-bar {
+            height: 15px;
+            background-color: black;
+            border-radius: 10px;
+            box-shadow: 0px 0px 0px 2px rgba(0, 0, 0, 0.5);
+            position: absolute;
+            bottom: 10px;
+            /* Ajuste conforme necessário */
+            animation-duration: 2s;
+            animation-fill-mode: forwards;
+        }
+
+        #porcento {
+            position: absolute;
+            /* Para posicionar sobre a barra */
+            top: 1px;
+            /* Ajuste conforme necessário */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Centraliza horizontalmente */
+            z-index: 10;
+            /* Garante que fique acima */
+            text-align: center;
+            color: black;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 0;
+        }
+
+        /* Animação da Barra */
+        @keyframes barra0-10 {
+            from {
+                width: 2%
+            }
+
+            to {
+                width: 10%;
+                background-color: red;
+
+            }
+        }
+
+
+        @keyframes barra11-25 {
+            from {
+                width: 5%;
+
+            }
+
+            to {
+                width: 25%;
+                background-color: orangered;
+            }
+        }
+
+        @keyframes barra26-50 {
+            from {
+                width: 5%;
+            }
+
+            to {
+                width: 45%;
+                background-color: yellow;
+            }
+        }
+
+        @keyframes barra51-75 {
+            from {
+                width: 5%;
+            }
+
+            to {
+                width: 55%;
+                background-color: lime;
+            }
+        }
+
+        @keyframes barra76-100 {
+            from {
+                width: 5%;
+            }
+
+            to {
+                width: 70%;
+                background-color: green;
+            }
+        }
+
+        /* Estilo para Telas de Celulares (max-width: 768px) */
+        @media only screen and (max-width: 768px) {
+
+            .inventory-box {
+                width: calc(50% - 20px);
+                height: auto;
+                /* Modificado para ocupar 50% da largura com margens */
+                margin: 10px;
+            }
+
+            #caixa-inventario {
+                margin-top: 25px;
+            }
+
+            @keyframes barra0-10 {
+                from {
+                    width: 2%;
+
+                }
+
+                to {
+                    width: 20%;
+                    background-color: red;
+                }
+            }
+
+            @keyframes barra11-25 {
+                from {
+                    width: 2%;
+
+                }
+
+                to {
+                    width: 40%;
+                    background-color: orangered;
+                }
+            }
+
+            @keyframes barra26-50 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 50%;
+                    background-color: yellow;
+                }
+            }
+
+            @keyframes barra51-75 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 60%;
+                    background-color: lime;
+                }
+            }
+
+            @keyframes barra76-100 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 70%;
+                    background-color: green;
+                }
+            }
+
+
+        }
+
+        /* Estilo para Telas de Tablet (min-width: 769px) */
+        @media only screen and (min-width: 770px) {
+            .content {
+                padding: 0 2em;
+                /* Adicionado preenchimento aos lados */
+            }
+
+            .lateral-menu {
+                /* Garante que o menu lateral seja mostrado em telas maiores */
+                transition: none;
+                /* Remove a transição para mostrar imediatamente em telas maiores */
+                padding-top: 60px;
+                width: 250px;
+            }
+
+            @keyframes barra0-10 {
+                from {
+                    width: 2%;
+
+                }
+
+                to {
+                    width: 20%;
+                    background-color: red;
+                }
+            }
+
+            @keyframes barra11-25 {
+                from {
+                    width: 2%;
+
+                }
+
+                to {
+                    width: 35%;
+                    background-color: orangered;
+                }
+            }
+
+            @keyframes barra26-50 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 45%;
+                    background-color: yellow;
+                }
+            }
+
+            @keyframes barra51-75 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 55%;
+                    background-color: lime;
+                }
+            }
+
+            @keyframes barra76-100 {
+                from {
+                    width: 2%;
+                }
+
+                to {
+                    width: 70%;
+                    background-color: green;
+                }
+            }
+
+        }
+
+        /* Estilo para Telas de Computadores (min-width: 1024px) */
+        @media only screen and (min-width: 1024px) {
+            .content {
+                padding: 0 3em;
+                /* Aumentando o preenchimento lateral */
+            }
+
+            .pesquisa {
+                margin-top: 40px;
+                /* Ajuste da margem superior */
+            }
+
+            .inventory-box {
+                width: 200px;
+                /* Aumentando o tamanho das caixas */
+            }
+        }

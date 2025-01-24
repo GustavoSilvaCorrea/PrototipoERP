@@ -1,0 +1,117 @@
+create database erp;
+use erp;
+
+create table funcionario (
+  cod_fun INT NOT NULL AUTO_INCREMENT,
+  nome_fun VARCHAR(50) NOT NULL,
+  cpf_fun VARcHAR(15) NOT NULL,
+  nascimento_fun DATE NOT NULL,
+  endereco_fun VARCHAR(45) NOT NULL,
+  email_fun VARCHAR(50) NOT NULL,
+  tel_fun VARCHAR(11) NULL,
+  funcao_fun VARCHAR(40) NOT NULL,
+  permissao_fun VARCHAR(100) NOT NULL,
+  status_fun VARCHAR(1) NOT NULL,
+  login_fun VARCHAR(45) NOT NULL,
+  senha_fun VARCHAR(255) NOT NULL,
+  data_adimissao_fun DATE NOT NULL,
+  salario_fun FLOAT NOT NULL,
+  foto_fun LONGTEXT NULL,
+  feedback_fun LONGTEXT NOT NULL,
+  PRIMARY KEY (cod_fun)
+); 
+
+create table cliente (
+    cod_cli int NOT NULL AUTO_INCREMENT,
+    nome_cli varchar(50),
+    email_cli varchar(50),
+    tel_cli varchar(11),
+    cpf_cli varchar(18),
+    endereco_cli varchar(50),
+    descricao_cli mediumtext,
+    funcionario_cod_fun int NOT NULL,
+    PRIMARY KEY (cod_cli),
+    FOREIGN KEY (funcionario_cod_fun) REFERENCES funcionario(cod_fun)
+);
+
+CREATE TABLE fornecedores (
+  cod_for INT NOT NULL AUTO_INCREMENT,
+  nome_for VARCHAR(45) NOT NULL,
+  cnpj_cpf_for VARCHAR(17) NOT NULL,
+  endereco_for VARCHAR(45) NOT NULL,
+  email_for VARCHAR(45) NOT NULL,
+  tel_for VARCHAR(11) NULL,
+  PRIMARY KEY (cod_for)
+);
+
+CREATE TABLE compra (
+  cod_com INT NOT NULL AUTO_INCREMENT,
+  data_com DATE NOT NULL,
+  valor_com FLOAT NOT NULL,
+  item_com VARCHAR(55) NOT NULL,
+  qtd_com FLOAT NOT NULL,
+  observacao_com MEDIUMTEXT NULL,
+  status_com VARCHAR(5),
+  vencimento_com DATE NOT NULL,
+  fornecedores_cod_for INT NOT NULL,
+  PRIMARY KEY (cod_com),
+  FOREIGN KEY (fornecedores_cod_for) REFERENCES fornecedores(cod_for)
+);
+
+CREATE TABLE produto (
+  cod_prod INT NOT NULL AUTO_INCREMENT,
+  nome_prod VARCHAR(45) NOT NULL,
+  descricao_prod MEDIUMTEXT NOT NULL,
+  medida_prod VARCHAR(15) NOT NULL,
+  tipo_prod VARCHAR(45) NOT NULL,
+  preco_prod FLOAT NOT NULL,
+  foto_prod LONGTEXT NOT NULL,
+  PRIMARY KEY (cod_prod)
+);
+
+CREATE TABLE estoque (
+  cod_est INT NOT NULL AUTO_INCREMENT,
+  quantidade_est FLOAT NOT NULL,
+  data_entrada_est DATETIME NOT NULL,
+  data_saida_est DATETIME,
+  estoque_minimo_est FLOAT NOT NULL,
+  compra_cod_com INT,
+  produto_cod_prod INT NOT NULL,
+  PRIMARY KEY (cod_est),
+  FOREIGN KEY (compra_cod_com) REFERENCES compra(cod_com),
+  FOREIGN KEY (produto_cod_prod) REFERENCES produto(cod_prod)
+);
+
+create table venda (
+  cod_venda INT NOT NULL AUTO_INCREMENT,
+  nome_cliente_venda VARCHAR(45) NULL,
+  produto_venda varchar(45) NOT NULL,
+  data_venda DATETIME NOT NULL,
+  quantidade_venda FLOAT NOT NULL,
+  valor_total_venda FLOAT NOT NULL,
+  forma_pagamento_venda VARCHAR(45) NOT NULL,
+  custo_venda VARCHAR(45) NOT NULL,
+  descricao_venda MEDIUMTEXT NULL,
+  funcionario_cod_fun int NOT NULL,
+  estoque_cod_est int NOT NULL,
+  PRIMARY KEY (cod_venda),
+  FOREIGN KEY (funcionario_cod_fun) REFERENCES funcionario(cod_fun),
+  FOREIGN KEY (estoque_cod_est) REFERENCES estoque(cod_est)
+);
+
+CREATE TABLE `relatorio` (
+  `cod_rel` INT NOT NULL AUTO_INCREMENT,
+  `tipo_rel` VARCHAR(60) NOT NULL,
+  `data_rel` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `nivel_rel` INT NOT NULL,
+  `titulo_rel` MEDIUMTEXT NOT NULL,
+  `conteudo_rel` LONGTEXT NOT NULL,
+  `funcionario_cod_fun` INT NOT NULL,
+  PRIMARY KEY (`cod_rel`),
+  INDEX `fk_relatorio_funcionario1_idx` (`funcionario_cod_fun` ASC),
+  CONSTRAINT `fk_relatorio_funcionario1`
+    FOREIGN KEY (`funcionario_cod_fun`)
+    REFERENCES `funcionario` (`cod_fun`)
+);
+INSERT INTO `funcionario` (`cod_fun`, `nome_fun`, `nascimento_fun`, `endereco_fun`, `email_fun`, `tel_fun`, `funcao_fun`, `permissao_fun`, `status_fun`, `login_fun`, `senha_fun`, `data_adimissao_fun`, `salario_fun`, `foto_fun`, `feedback_fun`) VALUES
+(1, 'Administrador', '1995-03-12', 'Rua C', 'admin@gmail.com', '1122334455', 'Aministrador', 'estoque,funcionarios,vendas,relatorios,financeiro,compra', 'A', 'admin', '$2y$10$G/rb3Al/V4anNAwuPLonW.X162byJskmENfAWEV3DRkmgWULhL1/i', '2021-05-10', 2500, NULL, 'administra o sistema.');

@@ -1,0 +1,141 @@
+===Banco de dados erp
+
+== Estrutura para tabela cliente
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_cli**//|int(11)|Não|
+|nome_cli|varchar(50)|Sim|NULL
+|email_cli|varchar(50)|Sim|NULL
+|tel_cli|varchar(11)|Sim|NULL
+|cpf_cli|varchar(18)|Sim|NULL
+|endereco_cli|varchar(50)|Sim|NULL
+|descricao_cli|mediumtext|Sim|NULL
+|funcionario_cod_fun|int(11)|Não|
+== Despejando dados para a tabela cliente
+
+|1|Felipe Augusto melo da silva|felipeaugusto2019melo@gmail.com|61999910667|158.803.446-13|rua 20 norte 3| |1
+== Estrutura para tabela compra
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_com**//|int(11)|Não|
+|data_com|date|Não|
+|valor_com|float|Não|
+|item_com|varchar(55)|Não|
+|qtd_com|float|Não|
+|observacao_com|mediumtext|Sim|NULL
+|status_com|varchar(5)|Sim|NULL
+|vencimento_com|date|Não|
+|fornecedores_cod_for|int(11)|Não|
+== Despejando dados para a tabela compra
+
+|1|2024-06-15|3000|Calça|30|Calça jeans - preta|A|2024-06-15|1
+|2|2024-06-15|0|Mochila Camuflada|50|Mochila Camuflada - Qualquer cor|P|2025-06-15|1
+== Estrutura para tabela estoque
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_est**//|int(11)|Não|
+|quantidade_est|float|Não|
+|data_entrada_est|datetime|Não|
+|data_saida_est|datetime|Sim|NULL
+|estoque_minimo_est|float|Não|
+|compra_cod_com|int(11)|Sim|NULL
+|produto_cod_prod|int(11)|Não|
+== Despejando dados para a tabela estoque
+
+|1|48|2024-06-15 21:01:10|2024-06-15 21:01:29|1|1|1
+== Estrutura para tabela fornecedores
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_for**//|int(11)|Não|
+|nome_for|varchar(45)|Não|
+|cnpj_cpf_for|varchar(17)|Não|
+|endereco_for|varchar(45)|Não|
+|email_for|varchar(45)|Não|
+|tel_for|varchar(11)|Sim|NULL
+== Despejando dados para a tabela fornecedores
+
+|1|Empresa-Fornecedor|00.000.000/0000.0|rua 20 norte 3|emaildaempresa@gmail.com|6199999999
+== Estrutura para tabela funcionario
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_fun**//|int(11)|Não|
+|nome_fun|varchar(50)|Não|
+|cpf_fun|varchar(15)|Não|
+|nascimento_fun|date|Não|
+|endereco_fun|varchar(45)|Não|
+|email_fun|varchar(50)|Não|
+|tel_fun|varchar(11)|Sim|NULL
+|funcao_fun|varchar(40)|Não|
+|permissao_fun|varchar(100)|Não|
+|status_fun|varchar(1)|Não|
+|login_fun|varchar(45)|Não|
+|senha_fun|varchar(255)|Não|
+|data_adimissao_fun|date|Não|
+|salario_fun|float|Não|
+|foto_fun|longtext|Sim|NULL
+|feedback_fun|longtext|Não|
+== Despejando dados para a tabela funcionario
+
+|1|Admin|000.000.000-00|2024-06-13|Rua 130|admin@gmail.com|61999999999|Administrador|relatorios,financeiro,vendas,compra,estoque,funcionarios|A|admin|1|2024-06-01|1|img/| 
+|2|Vendedor| |2004-01-15|Rua|Vendedoremail@gmail.com|61999999999|Vendedor|relatorios,vendas|A|vendedor|$2y$10$OCvY0zU6hQfgiEu31C80AeTgfq2B2CW/3k9yMltlaOZ3MO7RYpbWe|2024-06-15|2500|img/| 
+|3|Estoquista| |2003-01-17|rua|estoquista@gamil.com|61999999999|Estoquista|relatorios,compra,estoque|A|vendedor|$2y$10$kQQjD.np7w9baw14kNINLO2Qcd1.n.x90yghp0oOnf5RZ5E8QNcIG|2024-06-15|2500|img/| 
+|4|Contador| |1999-05-03|rua|contador@gmail.com|61999999999|Financeiro|relatorios,financeiro|A|contador|$2y$10$zgO/SOdkUEE/jBjKuOsIj.ReHwv6X1NIs42lL4v0DtodwLj9GV9pu|2024-06-15|2500|img/| 
+== Estrutura para tabela produto
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_prod**//|int(11)|Não|
+|nome_prod|varchar(45)|Não|
+|descricao_prod|mediumtext|Não|
+|medida_prod|varchar(15)|Não|
+|tipo_prod|varchar(45)|Não|
+|preco_prod|float|Não|
+|foto_prod|longtext|Não|
+== Despejando dados para a tabela produto
+
+|1|Calça|Calça|UND|Roupa|50|img/transferir.jfif
+== Estrutura para tabela relatorio
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_rel**//|int(11)|Não|
+|tipo_rel|varchar(60)|Não|
+|data_rel|timestamp|Não|current_timestamp()
+|nivel_rel|int(11)|Não|
+|titulo_rel|mediumtext|Não|
+|conteudo_rel|longtext|Não|
+|funcionario_cod_fun|int(11)|Não|
+== Despejando dados para a tabela relatorio
+
+|1|Aviso|2024-06-15 20:45:46|1|Teste|Teste |1
+== Estrutura para tabela venda
+
+|------
+|Coluna|Tipo|Nulo|Padrão
+|------
+|//**cod_venda**//|int(11)|Não|
+|nome_cliente_venda|varchar(45)|Sim|NULL
+|produto_venda|varchar(45)|Não|
+|data_venda|datetime|Não|
+|quantidade_venda|float|Não|
+|valor_total_venda|float|Não|
+|forma_pagamento_venda|varchar(45)|Não|
+|custo_venda|varchar(45)|Não|
+|descricao_venda|mediumtext|Sim|NULL
+|funcionario_cod_fun|int(11)|Não|
+|estoque_cod_est|int(11)|Não|
+== Despejando dados para a tabela venda
+
+|1|Felipe Augusto melo da silva|Calça|2024-06-15 21:01:29|2|100|credito|50| |1|1

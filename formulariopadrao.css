@@ -1,0 +1,208 @@
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Estilização do corpo */
+        body {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+
+        }
+        #cabecalho-main {
+            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom-style: hidden;
+            background-color: #44749D;
+            color: #fff;
+            padding: 1em;
+            text-align: center;
+            align-items: center;
+        }
+        #cabecalho-main .img_fun{
+            width: 20%;
+            margin: 2px;
+            padding: 2px;
+            border-radius: 50%;
+        }
+        #cabecalho-main .img{
+            align-content: left;
+            padding: 1% 1%;
+            height: 92%;
+            width: 16%;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 7%;
+        }
+        #cabecalho-main h3 {
+            margin: 0 10px;
+            margin-left: auto;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 10px;
+            padding-bottom: 50px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 650px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 20px;
+            margin-top: 20px;
+            align-items: center;
+            border: 1px solid black;
+        }
+
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #007bff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin: 10px 0 5px;
+        }
+
+        input,
+        textarea,
+        select {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button,
+        input[type="submit"] {
+            padding: 10px;
+            background-color: #3a3f51;
+            color: white !important;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button,
+        input[type="submit"]:hover {
+            background-color: #2a2e3a;
+            /* Cor de hover mais escura */
+            box-shadow: 0 0 8px rgba(58, 63, 81, 0.6);
+            /* Sombra baseada na cor de fundo ajustada */
+            
+        }
+
+        /* CSS Padrão para Cabeçalhos */
+        #cabecalho-main {
+            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom-style: hidden;
+            background-color: #44749D;
+            color: #fff;
+            padding: 1em;
+            text-align: center;
+            align-items: center;
+        }
+
+        #cabecalho-main h3 {
+            margin: 0 10px;
+            margin-left: auto;
+        }
+
+        #cabecalho-main .img_fun {
+            width: 20%;
+            margin: 2px;
+            padding: 2px;
+            border-radius: 50%;
+        }
+
+        #cabecalho-main .img {
+            align-content: left;
+            padding: 1% 1%;
+            height: 92%;
+            width: 16%;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 7%;
+        }
+
+        /* CSS Criativo para Outros Elementos */
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center !important;
+        }
+
+        th {
+            background-color: #3a3f51;
+            color: #fff;
+        }
+
+        /* Inputs */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #44749D;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
