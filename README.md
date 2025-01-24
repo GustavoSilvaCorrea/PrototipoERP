@@ -70,7 +70,7 @@ Este repositório contém o projeto desenvolvido como Trabalho de Conclusão de 
 
 ## 👨‍💻 Desenvolvedores  
 
-- **Autores:** Gustavo da Silva Corrêa, Felipe Augusto Melo da Silva , João Vitor Dos Santos Sales, Clênio Arthur
+- **Autores:** Gustavo da Silva Corrêa, Felipe Augusto Melo da Silva , João Vitor Dos Santos Sales, Clênio Arthur Pereira Almeida.
 - **Contato:** gusta0581476@gmail.com 
 
 ---
