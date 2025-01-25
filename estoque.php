@@ -184,7 +184,6 @@ session_start()
                         case ($porcentagem <= 10):
 
                             echo '<div class="quantity-bar" style="animation-name: barra0-10;">';
-                            echo '<p id="porcento">10%</p>';
                             echo '<p style="color: red; font-size: 17px;" ></p>';
                             echo '</div>';
                             break;

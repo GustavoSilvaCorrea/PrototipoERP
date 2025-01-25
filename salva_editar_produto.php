@@ -8,24 +8,7 @@ if (!$conectar) {
 
 $nome = clear($_POST["nome_prod"]);
 
-// Verifica se o nome do produto já está cadastrado
-$sql_verifica = "SELECT nome_prod FROM produto WHERE nome_prod = ?";
-$stmt = $conectar->prepare($sql_verifica);
-$stmt->bind_param("s", $nome);
-$stmt->execute();
-$stmt->store_result();
 
-if ($stmt->num_rows > 0) {
-    echo "<script>
-            alert('$nome já foi cadastrado');
-            location.href = 'editar_produto.php';
-          </script>";
-    $stmt->close();
-    $conectar->close();
-    exit();
-}
-
-$stmt->close();
 
 // Consulta para obter os valores atuais do produto e da tabela estoque
 $sql_consulta = "
