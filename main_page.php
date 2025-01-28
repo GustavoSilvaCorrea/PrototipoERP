@@ -24,7 +24,7 @@ if (!$resultado_compras) {
 
 // Consulta SQL para obter as compras pendentes
 $resultado_pendentes = mysqli_query($conexao, "SELECT 
-    c.data_com, c.valor_com, c.item_com, c.qtd_com, c.observacao_com, c.status_com, c.vencimento_com, f.nome_for
+    c.cod_com, c.data_com, c.valor_com, c.item_com, c.qtd_com, c.observacao_com, c.status_com, c.vencimento_com, f.nome_for
     FROM compra c
     INNER JOIN fornecedores f ON c.fornecedores_cod_for = f.cod_for
     WHERE c.status_com = 'P'");
@@ -34,7 +34,7 @@ if (!$resultado_pendentes) {
 
 // Consulta SQL para obter os relatórios de avisos
 $resultado_avisos = mysqli_query($conexao, "SELECT r.cod_rel,
-    r.titulo_rel, r.conteudo_rel, r.data_rel, f.nome_fun 
+    r.titulo_rel,r.tipo_rel, r.conteudo_rel, r.data_rel, f.nome_fun 
     FROM relatorio r
     INNER JOIN funcionario f ON r.funcionario_cod_fun = f.cod_fun
     WHERE r.tipo_rel = 'aviso'");
@@ -76,7 +76,8 @@ if (!$resultado_avisos) {
 
         .section-title {
             margin: 20px 0;
-            font-size: 24px;
+            font-size: 25px;
+            font-weight: 600;
             color: #44749D;
         }
 
@@ -86,21 +87,25 @@ if (!$resultado_avisos) {
             justify-content: space-between;
             gap: 20px;
             margin-top: 20px;
+
         }
 
         .card {
-            flex-basis: calc(50% - 10px);
-            text-align: center;
+            background-image: url(img/cart.png);
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 10px;
             padding: 20px;
             margin: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
         }
 
         .card-title {
+            text-align: center;
             font-size: 18px;
+            font-weight: 600;
             margin-bottom: 10px;
             margin-left: 10px;
             margin-right: 10px;
@@ -108,13 +113,61 @@ if (!$resultado_avisos) {
         }
 
         .card-content {
+            text-align: justify;
             font-size: 16px;
             line-height: 1.5;
+
+        }
+
+        .centro {
+            display: flex;
+            justify-content: center;
+        }
+
+        .detalhes {
+            width: 50%;
+            margin-left: 24%;
+            border-radius: 25px;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            text-align: center;
+            text-decoration: none !important;
+            /* Remove underline */
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            background-color: #44749D;
+        }
+
+        .detalhes:hover {
+            background: #365f7d;
+            /* Azul mais escuro */
+            transform: scale(1.05);
+            /* Aumento ao passar o mouse */
+        }
+
+        .icon-button {
+            all: unset;
+            /* Removes all default styles (padding, margin, border, background, etc.) */
+            cursor: pointer;
+            /* Adds pointer cursor to indicate interactivity */
+            display: inline-block;
+            /* Ensures proper layout for the image */
+        }
+
+        .icon-button img {
+            display: block;
+            /* Removes inline spacing */
+            width: 50px;
+            /* Adjust size as needed */
+            height: 50px;
+            /* Keep a consistent aspect ratio */
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
     <script type="text/javascript">
         // Carrega o pacote de gráficos do google
         google.charts.load('current', {
@@ -233,46 +286,93 @@ if (!$resultado_avisos) {
 
         <!-- Compras Pendentes -->
         <h3 class="section-title">Compras Pendentes</h3>
-        <?php
-        if (mysqli_num_rows($resultado_pendentes) > 0) {
-            while ($row = mysqli_fetch_assoc($resultado_pendentes)) {
-                echo "<div class='card'>
-                        <div class='card-title'>Fornecedor: " . $row['nome_for'] . "</div>
-                        <div class='card-content'>
-                            <strong>Produto:</strong> " . $row['item_com'] . "<br>
-                            <strong>Preço:</strong> R$" . $row['valor_com'] . "<br>
-                            <strong>Quantidade:</strong> " . $row['qtd_com'] . "<br>
-                            <strong>Observação:</strong> " . $row['observacao_com'] . "<br>
-                            <strong>Data da Compra:</strong> " . $row['data_com'] . "<br>
-                            <strong>Data de Validade:</strong> " . $row['vencimento_com'] . "<br>
-                            <strong>Status da Compra:</strong> Compra Pendente
-                        </div>
-                      </div>";
-            }
-        } else {
-            echo "<p>Nenhuma compra pendente.</p>";
-        }
-        ?>
+        <div class="cards-container">
 
-        <!-- Relatórios de Avisos -->
-        <?php
-        if (mysqli_num_rows($resultado_avisos) > 0) {
-            while ($row = mysqli_fetch_assoc($resultado_avisos)) {
-                echo "<div class='card' id='card_" . $row['cod_rel'] . "'>
-                        <div class='card-title'>" . $row['titulo_rel'] . "</div>
-                        <div class='card-content'>
-                            <strong>Data:</strong> " . $row['data_rel'] . "<br>
-                            <strong>Funcionário:</strong> " . $row['nome_fun'] . "
-                        </div>
-                        <p><strong><a href='relatorios.php' class='ver-conteudo' data-id='" . $row['cod_rel'] . "'>Ver conteúdo</a></strong></p>
-                      </div>";
+
+            <div class="centro">
+                <!-- Left Arrow -->
+                <button class="icon-button">
+                    <img src="img/next.png" alt="arrow_prev" style="transform: scaleX(-1);">
+                </button>
+
+                <?php
+                if (mysqli_num_rows($resultado_pendentes) > 0) {
+                    $counter = 0; // Initialize counter
+
+                    while ($row = mysqli_fetch_assoc($resultado_pendentes)) {
+                        // Display the card
+                        echo "<div class='card'>
+                <div class='card-title'>" . $row['nome_for'] . "</div>
+                <div class='card-content'>
+                    <strong>Produto:</strong> " . $row['item_com'] . "<br>
+                    <strong>Preço:</strong> R$" . $row['valor_com'] . "<br>
+                    <strong>Quantidade:</strong> " . $row['qtd_com'] . "<br>
+                    <strong>Observação:</strong> " . $row['observacao_com'] . "<br>
+                    <strong>Data da Compra:</strong> " . $row['data_com'] . "<br>
+                    <strong>Data de Validade:</strong> " . $row['vencimento_com'] . "<br>
+                </div>
+                <p class='detalhes'>
+                    <a style='text-decoration: none; color: white;' href='editar_compra.php?id=$row[cod_com]' title='Editar'>Pagamento</a>
+                </p>
+            </div>";
+
+                        $counter++; // Increment the counter
+
+                        // Stop after 3 cards
+                        if ($counter >= 3) {
+                            break; // Exit the loop
+                        }
+                    }
+                } else {
+                    echo "<p>Nenhuma compra pendente.</p>";
+                }
+                ?>
+
+                <button class="icon-button">
+                    <img src="img/next.png" alt="arrow_prev">
+                </button>
+            </div>
+        </div>
+
+
+
+
+        <h3 class="section-title">Relatórios Importantes</h3>
+        <div class="centro">
+            <!-- Left Arrow -->
+            <button class="icon-button">
+                <img src="img/next.png" alt="arrow_prev" style="transform: scaleX(-1);">
+            </button>
+
+            <?php
+            if (mysqli_num_rows($resultado_avisos) > 0) {
+                $counter = 0; // Initialize counter
+
+                while ($row = mysqli_fetch_assoc($resultado_avisos)) {
+                    echo "<div class='card' style='background-image: url(img/news.png);' id='card_" . $row['cod_rel'] . "'>
+                    <div class='card-title'>" . $row['titulo_rel'] . "</div>
+                    <div class='card-content'>
+                        <strong>Data:</strong> " . $row['data_rel'] . "<br>
+                        <strong>Tipo:</strong> " . $row['tipo_rel'] . "<br>
+                        <strong>Funcionário:</strong> " . $row['nome_fun'] . "
+                    </div>
+                    <p class='detalhes'><a style='text-decoration: none; color: white;' href='relatorios.php' class='ver-conteudo' data-id='" . $row['cod_rel'] . "'>Detalhes</a></p>
+                  </div>";
+                    
+                }
+            } else {
+                echo "<p>Nenhum aviso encontrado.</p>";
             }
-        } else {
-            echo "<p>Nenhum aviso encontrado.</p>";
-        }
-        ?>
+            ?>
+
+            <!-- Right Arrow -->
+            <button class="icon-button">
+                <img src="img/next.png" alt="arrow_prev">
+            </button>
+        </div>
+
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 // Função para ocultar os cards previamente ocultados ao carregar a página
                 function ocultarCardsOcultos() {
                     const cardsOcultos = JSON.parse(localStorage.getItem('cardsOcultos')) || [];
@@ -290,7 +390,7 @@ if (!$resultado_avisos) {
 
                 // Adiciona um evento de clique para cada link
                 linksVerConteudo.forEach(link => {
-                    link.addEventListener('click', function (e) {
+                    link.addEventListener('click', function(e) {
                         e.preventDefault(); // Previne o comportamento padrão do link
 
                         // Obtém o ID do card associado ao link clicado
