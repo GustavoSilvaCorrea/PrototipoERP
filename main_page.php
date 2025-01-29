@@ -23,14 +23,7 @@ if (!$resultado_compras) {
 }
 
 // Consulta SQL para obter as compras pendentes
-$resultado_pendentes = mysqli_query($conexao, "SELECT 
-    c.cod_com, c.data_com, c.valor_com, c.item_com, c.qtd_com, c.observacao_com, c.status_com, c.vencimento_com, f.nome_for
-    FROM compra c
-    INNER JOIN fornecedores f ON c.fornecedores_cod_for = f.cod_for
-    WHERE c.status_com = 'P'");
-if (!$resultado_pendentes) {
-    die("Erro ao executar a consulta de compras pendentes: " . mysqli_error($conexao));
-}
+
 
 // Consulta SQL para obter os relatórios de avisos
 $resultado_avisos = mysqli_query($conexao, "SELECT r.cod_rel,
@@ -287,137 +280,143 @@ if (!$resultado_avisos) {
         <!-- Compras Pendentes -->
         <h3 class="section-title">Compras Pendentes</h3>
         <div class="cards-container">
-
-
             <div class="centro">
                 <!-- Left Arrow -->
-                <button class="icon-button">
+                <button id="left-arrow" class="icon-button" onclick="backCompras()">
                     <img src="img/next.png" alt="arrow_prev" style="transform: scaleX(-1);">
                 </button>
 
                 <?php
+                $conectar = mysqli_connect("localhost", "root", "", "erp");
+
+                if (!$conectar) {
+                    die("Conexão falhou: " . mysqli_connect_error());
+                }
+
+                $page_compras = isset($_GET['page_compras']) ? intval($_GET['page_compras']) : 0; // Página atual para Compras Pendentes
+                $limit = 3; // Limite por página
+                $offset = $page_compras * $limit; // Calcular o deslocamento
+
+                // Consultar compras pendentes com limite e deslocamento
+                $query = "SELECT c.cod_com, c.data_com, c.valor_com, c.item_com, c.qtd_com, c.observacao_com, c.status_com, c.vencimento_com, f.nome_for
+        FROM compra c 
+        INNER JOIN fornecedores f ON c.fornecedores_cod_for = f.cod_for
+        WHERE c.status_com = 'P' 
+        LIMIT $limit OFFSET $offset";
+                $resultado_pendentes = mysqli_query($conectar, $query);
+
                 if (mysqli_num_rows($resultado_pendentes) > 0) {
-                    $counter = 0; // Initialize counter
-
                     while ($row = mysqli_fetch_assoc($resultado_pendentes)) {
-                        // Display the card
                         echo "<div class='card'>
-                <div class='card-title'>" . $row['nome_for'] . "</div>
-                <div class='card-content'>
-                    <strong>Produto:</strong> " . $row['item_com'] . "<br>
-                    <strong>Preço:</strong> R$" . $row['valor_com'] . "<br>
-                    <strong>Quantidade:</strong> " . $row['qtd_com'] . "<br>
-                    <strong>Observação:</strong> " . $row['observacao_com'] . "<br>
-                    <strong>Data da Compra:</strong> " . $row['data_com'] . "<br>
-                    <strong>Data de Validade:</strong> " . $row['vencimento_com'] . "<br>
-                </div>
-                <p class='detalhes'>
-                    <a style='text-decoration: none; color: white;' href='editar_compra.php?id=$row[cod_com]' title='Editar'>Pagamento</a>
-                </p>
-            </div>";
-
-                        $counter++; // Increment the counter
-
-                        // Stop after 3 cards
-                        if ($counter >= 3) {
-                            break; // Exit the loop
-                        }
+                        <div class='card-title'>" . $row['nome_for'] . "</div>
+                        <div class='card-content'>
+                            <strong>Produto:</strong> " . $row['item_com'] . "<br>
+                            <strong>Preço:</strong> R$" . $row['valor_com'] . "<br>
+                            <strong>Quantidade:</strong> " . $row['qtd_com'] . "<br>
+                            <strong>Observação:</strong> " . $row['observacao_com'] . "<br>
+                            <strong>Data da Compra:</strong> " . $row['data_com'] . "<br>
+                            <strong>Data de Validade:</strong> " . $row['vencimento_com'] . "<br>
+                        </div>
+                        <p class='detalhes'>
+                            <a style='text-decoration: none; color: white;' href='editar_compra.php?id=" . $row['cod_com'] . "'>Pagamento</a>
+                        </p>
+                      </div>";
                     }
                 } else {
                     echo "<p>Nenhuma compra pendente.</p>";
                 }
                 ?>
 
-                <button class="icon-button">
-                    <img src="img/next.png" alt="arrow_prev">
+                <!-- Right Arrow -->
+                <button id="right-arrow" class="icon-button" onclick="nextCompras()">
+                    <img src="img/next.png" alt="arrow_next">
                 </button>
             </div>
         </div>
 
+        <script>
+            let currentPageCompras = <?php echo $page_compras; ?>; // Página inicial para Compras Pendentes
 
+            function nextCompras() {
+                currentPageCompras++;
+                window.location.href = `?page_compras=${currentPageCompras}`;
+            }
 
+            function backCompras() {
+                if (currentPageCompras > 0) {
+                    currentPageCompras--;
+                    window.location.href = `?page_compras=${currentPageCompras}`;
+                }
+            }
+        </script>
 
+        <!-- Relatórios Importantes -->
         <h3 class="section-title">Relatórios Importantes</h3>
         <div class="centro">
             <!-- Left Arrow -->
-            <button class="icon-button">
+            <button class="icon-button" onclick="backRelatorios()">
                 <img src="img/next.png" alt="arrow_prev" style="transform: scaleX(-1);">
             </button>
 
             <?php
-            if (mysqli_num_rows($resultado_avisos) > 0) {
-                $counter = 0; // Initialize counter
+            $page_relat = isset($_GET['page_relat']) ? intval($_GET['page_relat']) : 0; // Página atual para Relatórios
+            $offset_relat = $page_relat * $limit; // Calcular o deslocamento
 
+            // Consulta para buscar os relatórios com limite e deslocamento
+            $query_avisos = "SELECT r.cod_rel, r.nivel_rel, r.titulo_rel, r.tipo_rel, r.conteudo_rel, r.data_rel, f.nome_fun  
+                     FROM relatorio r 
+                     INNER JOIN funcionario f ON r.funcionario_cod_fun = f.cod_fun 
+                     WHERE r.tipo_rel = 'aviso' 
+                     LIMIT $limit OFFSET $offset_relat";
+            $resultado_avisos = mysqli_query($conectar, $query_avisos);
+
+            if (mysqli_num_rows($resultado_avisos) > 0) {
                 while ($row = mysqli_fetch_assoc($resultado_avisos)) {
-                    echo "<div class='card' style='background-image: url(img/news.png);' id='card_" . $row['cod_rel'] . "'>
+                    if ($row['nivel_rel'] = 5){
+                    echo "<div class='card'>
                     <div class='card-title'>" . $row['titulo_rel'] . "</div>
                     <div class='card-content'>
                         <strong>Data:</strong> " . $row['data_rel'] . "<br>
                         <strong>Tipo:</strong> " . $row['tipo_rel'] . "<br>
+
                         <strong>Funcionário:</strong> " . $row['nome_fun'] . "
                     </div>
-                    <p class='detalhes'><a style='text-decoration: none; color: white;' href='relatorios.php' class='ver-conteudo' data-id='" . $row['cod_rel'] . "'>Detalhes</a></p>
+                    <p class='detalhes'>
+                        <a style='text-decoration: none; color: white;' href='relatorios.php?id=" . $row['cod_rel'] . "'>Detalhes</a>
+                    </p>
                   </div>";
-                    
                 }
+                else {
+                    echo "<p>adas</p>";
+                }
+            }
             } else {
                 echo "<p>Nenhum aviso encontrado.</p>";
             }
             ?>
 
             <!-- Right Arrow -->
-            <button class="icon-button">
-                <img src="img/next.png" alt="arrow_prev">
+            <button class="icon-button" onclick="nextRelatorios()">
+                <img src="img/next.png" alt="arrow_next">
             </button>
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Função para ocultar os cards previamente ocultados ao carregar a página
-                function ocultarCardsOcultos() {
-                    const cardsOcultos = JSON.parse(localStorage.getItem('cardsOcultos')) || [];
+            let currentPageRelat = <?php echo $page_relat; ?>; // Página inicial para Relatórios
 
-                    cardsOcultos.forEach(cardId => {
-                        const card = document.getElementById('card_' + cardId);
-                        if (card) {
-                            card.style.display = 'none';
-                        }
-                    });
+            function nextRelatorios() {
+                currentPageRelat++;
+                window.location.href = `?page_relat=${currentPageRelat}`;
+            }
+
+            function backRelatorios() {
+                if (currentPageRelat > 0) {
+                    currentPageRelat--;
+                    window.location.href = `?page_relat=${currentPageRelat}`;
                 }
-
-                // Captura todos os links com classe 'ver-conteudo'
-                const linksVerConteudo = document.querySelectorAll('.ver-conteudo');
-
-                // Adiciona um evento de clique para cada link
-                linksVerConteudo.forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault(); // Previne o comportamento padrão do link
-
-                        // Obtém o ID do card associado ao link clicado
-                        const cardId = this.getAttribute('data-id');
-
-                        // Oculta o card correspondente
-                        const card = document.getElementById('card_' + cardId);
-                        if (card) {
-                            card.style.display = 'none';
-
-                            // Salva o ID do card ocultado no localStorage
-                            let cardsOcultos = JSON.parse(localStorage.getItem('cardsOcultos')) || [];
-                            if (!cardsOcultos.includes(cardId)) {
-                                cardsOcultos.push(cardId);
-                                localStorage.setItem('cardsOcultos', JSON.stringify(cardsOcultos));
-                            }
-
-                            // Redireciona para a URL do link após ocultar o card
-                            window.location.href = this.href;
-                        }
-                    });
-                });
-
-                // Ao carregar a página, oculta os cards previamente ocultados
-                ocultarCardsOcultos();
-            });
+            }
         </script>
+
     </div>
     <!-- Relatórios de Gráficos -->
     <div class="container-charts">
