@@ -84,7 +84,7 @@ session_start();
     </script>
 
     <div class="container">
-        <h1>Relatório</h1>
+
         <?php
         $conectar = mysqli_connect("localhost", "root", "", "erp");
 
@@ -144,38 +144,35 @@ session_start();
 
                     // Exibição do relatório
                     echo '<div class="report" data-product-type="' . date('d/m/Y', strtotime($rel['data_rel'])) . '">
-                        <h2>' . $rel['titulo_rel'] . '</h2>
-                        <p>' . $rel['tipo_rel'] . '</p>
-                        <p class="meta">Feito por: ' . $funcionario_nome_fun . ' há <span class="date">' . $tempo_rel . $tempo . ' </span></p>
-                        <p class="importance" style="color: ' . getColorByLevel($nivel) . '">Nível de Importância: ' . $nivel . '</p>
-                        <p class="content" style="font-weight: 600;" readonly>' . $rel['conteudo_rel'] . '</p>
-                        <button class="read-more-btn" data-content="' . htmlspecialchars($rel['conteudo_rel'], ENT_QUOTES, 'UTF-8') . '">Leia mais</button>';
+        <h2 style="text-align: center; margin-bottom: 5px;">' . $rel['titulo_rel'] . '</h2>
+        <h4 style="text-align: center; margin-top: 0px;">' . $rel['tipo_rel'] . '</h4>';
+
+                    if ($rel["nivel_rel"] == 1) {
+                        echo '<p class="content" style="font-weight: 600; border-color: green; 
+          box-shadow: 2px 2px 10px rgba(0, 128, 0, 0.2); background-color:rgba(0, 128, 0, 0.2);" readonly>' . $rel['conteudo_rel'] . '</p>';
+                    } elseif ($rel["nivel_rel"] == 2) {
+                        echo '<p class="content" style="font-weight: 600; border-color: yellow; 
+          box-shadow: 2px 2px 10px rgba(255, 255, 0, 0.3); background-color: rgba(255, 255, 0, 0.3);" readonly>' . $rel['conteudo_rel'] . '</p>';
+                    } elseif ($rel["nivel_rel"] == 3) {
+                        echo '<p class="content" style="font-weight: 600; border-color: orange; 
+          box-shadow: 2px 2px 10px rgba(255, 165, 0, 0.3); background-color:rgba(255, 165, 0, 0.3);" readonly>' . $rel['conteudo_rel'] . '</p>';
+                    } elseif ($rel["nivel_rel"] == 4) {
+                        echo '<p class="content" style="font-weight: 600; border-color: orangered; 
+          box-shadow: 2px 2px 10px rgba(255, 69, 0, 0.4); background-color:rgba(255, 69, 0, 0.4);" readonly>' . $rel['conteudo_rel'] . '</p>';
+                    } else {
+                        echo '<p class="content" style="font-weight: 600; border-color: red; 
+          box-shadow: 2px 2px 10px rgba(255, 0, 0, 0.5); background-color:rgba(255, 0, 0, 0.5);" readonly>' . $rel['conteudo_rel'] . '</p>';
+                    }
+
+                    echo '<p class="meta">' . $funcionario_nome_fun . ' há <span class="date">' . $tempo_rel . $tempo . ' </span></p>
+      <button class="read-more-btn" data-content="' . htmlspecialchars($rel['conteudo_rel'], ENT_QUOTES, 'UTF-8') . '">Leia mais</button>';
 
                     if ($_SESSION["nome_fun"] == $funcionario_nome_fun || $funcao_fun == 'Administrador') {
-                        echo "<a  class='btn btn-sm btn-primary' href='editar_relatorio.php?id=" . $rel['cod_rel'] . "' title='Editar'>Editar Relatório</a>";
+                        echo "<a class='btn btn-sm btn-primary' href='editar_relatorio.php?id=" . $rel['cod_rel'] . "' title='Editar'>Editar Relatório</a>";
                     }
 
                     echo "</div>";
                 }
-            }
-        }
-
-        // Função para determinar cor por nível
-        function getColorByLevel($level)
-        {
-            switch ($level) {
-                case 1:
-                    return 'green';
-                case 2:
-                    return '#FDDA0D';
-                case 3:
-                    return 'orange';
-                case 4:
-                    return 'orangered';
-                case 5:
-                    return 'red';
-                default:
-                    return 'black';
             }
         }
         ?>

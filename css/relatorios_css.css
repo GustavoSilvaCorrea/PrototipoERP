@@ -69,11 +69,13 @@
 
         #search {
             flex: 1;
+            text-align: center;
             width: 300px;
             font-weight: 800;
             font-size: 20px;
             border-radius: 50px;
-            border: 2px solid #dcdcdc;
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
             margin-right: 10px;
         }
 
@@ -83,6 +85,8 @@
             font-size: 12px;
             font-weight: 600;
             border-radius: 50px;
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
             padding: 20px 20px;
             /* Ajustar o espaçamento interno */
             max-width: 300px;
@@ -90,34 +94,47 @@
         }
 
         .container {
-            width: 80%;
+            width: 90% !important;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            flex-wrap: wrap;
             margin: 50px auto;
             padding: 20px;
             background-color: #fff;
+            
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .report {
             display: flex;
+            width: 30%;
             flex-direction: column;
+            margin-top: 20px;
             margin-bottom: 20px;
+            margin-left: 20px;
+            margin-right: 20px;
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
             border-radius: 5px;
         }
 
         .btn-primary {
             align-self: center;
-            width: 500px;
+            width: 300px;
             font-size: 25px;
-            background-color: #3a3f51 !important;
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
+            background-color: #44749D !important;
+            border-radius: 20px !important;
         }
 
         .btn-primary:hover {
-            background-color: #2a2e3a;
-            /* Cor de hover mais escura */
-            box-shadow: 0 0 8px rgba(58, 63, 81, 0.6);
-            /* Sombra baseada na cor de fundo ajustada */
+            background: #365f7d;
+            /* Azul mais escuro */
+            transform: scale(1.05);
+            /* Aumento ao passar o mouse */
 
         }
 
@@ -177,19 +194,18 @@
             font-size: 16px;
             font-weight: 600;
             color: #fff;
-            background-color: #3a3f51;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
+            background-color: #44749D !important;
+            border-radius: 20px !important;
             cursor: pointer;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .read-more-btn:hover {
-            background-color: #2a2e3a;
-            /* Cor de hover mais escura */
-            box-shadow: 0 0 8px rgba(58, 63, 81, 0.6);
-            /* Sombra baseada na cor de fundo ajustada */
+            background: #365f7d;
+            /* Azul mais escuro */
+            transform: scale(1.05);
+            /* Aumento ao passar o mouse */
         }
 
         /* Modal */
@@ -241,4 +257,10 @@
             font-size: 16px;
             line-height: 1.5;
             background-color: #f9f9f9;
+        }
+        .section-title {
+            margin: 20px 0;
+            font-size: 25px;
+            font-weight: 600;
+            color: #44749D;
         }
