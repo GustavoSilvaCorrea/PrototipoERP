@@ -1,10 +1,13 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 $conexao = mysqli_connect("localhost", "root", "", "erp");
 if (!$conexao) {
     die("Connection failed: " . mysqli_connect_error());
 }
-// Adicionar produto ao pedido
+
+// adicionar produto ao pedido
 if (isset($_POST['add_produto'])) {
     $produto_id = $_POST['produto_id'];
     $produto_nome = $_POST['produto_nome'];
@@ -19,11 +22,10 @@ if (isset($_POST['add_produto'])) {
         'preco_prod' => $produto_preco,
         'quantidade' => $produto_quantidade
     ];
+    echo json_encode($_SESSION['pedido']); // retorna o pedido atualizado
+    exit;
 }
-// Inicializar 'pedido' se não estiver definido
-if (!isset($_SESSION['pedido'])) {
-    $_SESSION['pedido'] = [];
-}
+
 // Finalizar pedido
 if (isset($_POST['finalizar_pedido'])) {
     $forma_pagamento = $_POST['forma_pagamento'];
@@ -35,30 +37,20 @@ if (isset($_POST['finalizar_pedido'])) {
         $valor_dinheiro = floatval($_POST['valor_dinheiro']);
         if ($valor_dinheiro < $total_pedido) {
             $valor_faltante = $total_pedido - $valor_dinheiro;
-            $mensagem = "Valor em dinheiro insuficiente! Faltam R$ " . number_format($valor_faltante, 2, ',', '.');
-            echo "<script>
-                alert('$mensagem');
-                document.getElementById('total-pedido').textContent = 'R$ " . number_format($valor_faltante, 2, ',', '.') . "';
-              </script>";
+            echo json_encode(['status' => 'error', 'message' => "Valor em dinheiro insuficiente! Faltam R$ " . number_format($valor_faltante, 2, ',', '.')]);
         } else {
             $troco = $valor_dinheiro - $total_pedido;
-            $mensagem = "Pedido finalizado! Troco: R$ " . number_format($troco, 2, ',', '.');
-            echo "<script>
-            alert('$mensagem');
-            location.href = 'sistema_venda.php';
-          </script>";
-            // Limpar o pedido atual
+            echo json_encode(['status' => 'success', 'message' => "Pedido finalizado! Troco: R$ " . number_format($troco, 2, ',', '.')]);
             unset($_SESSION['pedido']);
         }
     } else {
-        $funcionario_id = $_SESSION['cod_fun']; // Assumindo que o ID do funcionário está armazenado na sessão
+        $funcionario_id = $_SESSION['cod_fun'];
         $nome_cli = $_SESSION['nome_cli'];
         foreach ($_SESSION['pedido'] as $item) {
             $produto_nome = $item['nome_prod'];
             $produto_cod = $item['cod_prod'];
-            $quantidade = $item['quantidade']; // Usar a quantidade especificada pelo usuário
+            $quantidade = $item['quantidade'];
             $preco_unitario = $item['preco_prod'];
-            // Consultar o estoque para o produto
             $sql_consulta_est = "SELECT quantidade_est, estoque_minimo_est, cod_est FROM estoque WHERE produto_cod_prod = '$produto_cod'";
             $resultado_est = mysqli_query($conexao, $sql_consulta_est);
             if (mysqli_num_rows($resultado_est) > 0) {
@@ -67,51 +59,26 @@ if (isset($_POST['finalizar_pedido'])) {
                 $estoque_minimo = $estoque['estoque_minimo_est'];
                 $cod_est = $estoque['cod_est'];
                 if ($quantidade > $quantidade_disponivel) {
-                    $mensagem = "Quantidade requisitada para o produto $produto_nome excede a quantidade em estoque! Disponível: $quantidade_disponivel, Requisitado: $quantidade.";
-                    echo "<script>
-                        alert('$mensagem');
-                        location.href = 'sistema_venda.php';
-                      </script>";
-                    exit();
+                    echo json_encode(['status' => 'error', 'message' => "Quantidade requisitada para o produto $produto_nome excede a quantidade em estoque! Disponível: $quantidade_disponivel, Requisitado: $quantidade."]);
+                    exit;
                 } elseif ($quantidade_disponivel - $quantidade < $estoque_minimo) {
-                    $mensagem = "A venda do produto $produto_nome deixará o estoque abaixo do mínimo permitido! Estoque mínimo: $estoque_minimo.";
-                    echo "<script>
-                        alert('$mensagem');
-                        location.href = 'sistema_venda.php';
-                      </script>";
-                    exit();
+                    echo json_encode(['status' => 'error', 'message' => "A venda do produto $produto_nome deixará o estoque abaixo do mínimo permitido! Estoque mínimo: $estoque_minimo."]);
+                    exit;
                 } else {
-                    // Inserção na tabela venda
-                    $sql_inserir_venda = "
-                        INSERT INTO venda (data_venda, valor_total_venda, forma_pagamento_venda, descricao_venda, nome_cliente_venda, funcionario_cod_fun, produto_venda, quantidade_venda, custo_venda, estoque_cod_est)
-                        VALUES (NOW(), '$total_pedido', '$forma_pagamento', '$descricao_venda', '$nome_cli', '$funcionario_id', '$produto_nome', '$quantidade', '$preco_unitario' ,'$cod_est')
-                    ";
+                    $sql_inserir_venda = "INSERT INTO venda (data_venda, valor_total_venda, forma_pagamento_venda, descricao_venda, nome_cliente_venda, funcionario_cod_fun, produto_venda, quantidade_venda, custo_venda, estoque_cod_est) VALUES (NOW(), '$total_pedido', '$forma_pagamento', '$descricao_venda', '$nome_cli', '$funcionario_id', '$produto_nome', '$quantidade', '$preco_unitario', '$cod_est')";
                     mysqli_query($conexao, $sql_inserir_venda);
-                    // Atualização do estoque
-                    $sql_atualizar_estoque = "
-                        UPDATE estoque
-                        SET quantidade_est = quantidade_est - $quantidade,
-                        data_saida_est = now()
-                        WHERE produto_cod_prod = $produto_cod
-                    ";
+                    $sql_atualizar_estoque = "UPDATE estoque SET quantidade_est = quantidade_est - $quantidade, data_saida_est = now() WHERE produto_cod_prod = $produto_cod";
                     mysqli_query($conexao, $sql_atualizar_estoque);
                 }
             } else {
-                echo "<script>
-                    alert('Produto não encontrado no estoque! $produto_cod');
-                    location.href = 'sistema_venda.php';
-                  </script>";
-                exit();
+                echo json_encode(['status' => 'error', 'message' => "Produto não encontrado no estoque! $produto_cod"]);
+                exit;
             }
         }
-        $mensagem = "Pedido finalizado!";
-        echo "<script>
-        alert('$mensagem');
-        location.href = 'sistema_venda.php';
-      </script>";
-        // Limpar o pedido atual
+        echo json_encode(['status' => 'success', 'message' => "Pedido finalizado!"]);
         unset($_SESSION['pedido']);
     }
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -120,16 +87,20 @@ if (isset($_POST['finalizar_pedido'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de venda</title>
-    <link rel="stylesheet" href="formulariopadrao.css">
+    <title>Sistema de Venda</title>
     <style>
-        /* Estilização dos resultados de produtos */
-        #resultados-produto {
+        /* Estilos da Página Inteira */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
             background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 10px;
         }
 
         #cabecalho-main {
@@ -143,24 +114,6 @@ if (isset($_POST['finalizar_pedido'])) {
             color: #fff;
             padding: 1em;
             text-align: center;
-            align-items: center;
-        }
-
-        #cabecalho-main .img_fun {
-            width: 20%;
-            margin: 2px;
-            padding: 2px;
-            border-radius: 50%;
-        }
-
-        #cabecalho-main .img {
-            align-content: left;
-            padding: 1% 1%;
-            height: 92%;
-            width: 16%;
-            justify-content: center;
-            cursor: pointer;
-            margin-left: 7%;
         }
 
         #cabecalho-main h3 {
@@ -168,44 +121,175 @@ if (isset($_POST['finalizar_pedido'])) {
             margin-left: auto;
         }
 
-        #resultados-produto div {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #resultados-produto div:hover {
-            background-color: #eef;
-        }
-
-        /* Lista do pedido atual */
-        #lista-pedido {
-            background-color: #fff;
-            padding-left: 260px;
-            padding-right: 260px;
-            padding-top: 15px;
-            padding-bottom: 15px;
-            border: 1px solid black;
-            border-radius: 5px;
-            margin-top: 50px;
-            margin-bottom: 0;
-        }
-
-        #lista-pedido div {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #total-pedido {
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
         .vendas {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 10px;
+            padding-bottom: 50px;
+        }
+
+        .form-container {
+            width: 40%;
+            height: 50%;
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff;
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            /* Light and dark colors */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            /* Inner shadow for depth */
+            /* Azul */
+            border-radius: 20px;
+            /* Sombra */
+        }
+
+        .form-container-produto {
+            width: 40%;
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff;
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            /* Light and dark colors */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            /* Inner shadow for depth */
+            /* Azul */
+            border-radius: 20px;
+            /* Sombra */
+        }
+
+        .form-container-finalizar {
+            width: 40%;
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff;
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            /* Light and dark colors */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            /* Inner shadow for depth */
+            /* Azul */
+            border-radius: 20px;
+            /* Sombra */
+        }
+
+        .oculto {
+            display: none;
+        }
+
+        #itens-pedido {
+            font-size: 20px;
+        }
+
+        #total-pedido {
+            font-weight: 600;
+            font-size: 25px;
+        }
+
+        .input-text {
+            text-align: center;
+            width: 600px;
+            height: 70px;
+            font-size: 25px;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 20px;
+            background: #e0e0e0;
+            /* Fundo dos inputs */
+            color: #333;
+            padding: 15px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Sombra interna */
+        }
+
+        .input-text:hover {
+            background-color: #e0e0e0;
+            border: 3px solid #365f7d;
+            border-radius: 20px;
+            /* Borda ao focar */
+        }
+
+        .input-submit {
+            font-size: 1.5rem !important;
+            width: 350px;
+            height: 70px;
+            padding: 15px;
+            margin-top: 10px;
+            background: #365f7d;
+            /* Azul escuro */
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Sombra */
+        }
+
+        .input-submit:hover {
+            background: #2a4d64;
+            /* Azul mais escuro */
+            transform: scale(1.05);
+            /* Aumento ao passar o mouse */
+        }
+
+        #vava {
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .lista-pedidos {
+            height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff;
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            /* Light and dark colors */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            /* Inner shadow for depth */
+            /* Azul */
+            border-radius: 20px;
+            /* Sombra */
+        }
+
+        .centro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #forma_pagamento {
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
+            border-radius: 20px;
+            padding: 10px;
+            font-size: 20px;
         }
     </style>
 </head>
@@ -216,196 +300,192 @@ if (isset($_POST['finalizar_pedido'])) {
         <h3><?php echo $_SESSION["nome_fun"]; ?><?php include "valida_login.php"; ?></h3>
     </header>
     <?php include "navbar.php"; ?>
-    <?php
-    if (isset($_POST['cpf'])) {
-        $cpf = $_POST['cpf'];
-        $sql_verificar_cliente = "SELECT cod_cli, nome_cli, tel_cli, endereco_cli, email_cli FROM cliente WHERE cpf_cli = '$cpf'";
-        $resultado_cpf = mysqli_query($conexao, $sql_verificar_cliente);
-
-        if (mysqli_num_rows($resultado_cpf) > 0) {
-            $cliente = mysqli_fetch_assoc($resultado_cpf);
-            $_SESSION['nome_cli'] = $cliente['nome_cli'];
-            echo "<h1>Cliente encontrado: {$cliente['nome_cli']}</h1>";
-        } else {
-            echo "<h1>Cliente não encontrado. Por favor, cadastre o cliente.</h1>";
-            echo '<div class="vendas"><div class="form-container">' .
-                '<form method="POST" action="salva_cadastro_cliente.php">' .
-                'CPF: <input type="text" name="cpf" value="' . $cpf . '" required><br>' .
-                'Nome: <input type="text" name="nome" required><br>' .
-                'Telefone: <input type="text" name="telefone"><br>' .
-                'Endereço: <input type="text" name="endereco"><br>' .
-                'Email: <input type="text" name="email"><br>' .
-                'Observação: <input type="text" name="descricao"><br>' .
-                '<input type="submit" value="Cadastrar">' .
-                '</form></div></div>
-                <hr>';
-        }
-    }
-
-    ?>
     <div class="vendas">
-        <div class="form-container">
-            <form method="post">
-                <h3>Verificar o cadastro do cliente</h3>
-                CPF: <input type="text" name="cpf" pattern="[0-9]{3}[0-9]{3}[0-9]{3}[0-9]{2}" required><br>
-                <input type="submit" value="Verificar Cadastro">
+        <div id="cpf_cliente" class="form-container" style="background-image: url(img/person.png);">
+            <form id="form-cpf">
+                <h3 style="text-align: center; margin-bottom: 25px; font-size: 25px; font-weight: 600; color: #44749D;">Verificar o cadastro do cliente</h3>
+                <input class="input-text" id="cpf" type="number" name="cpf" data-format="999.999.999-99" placeholder="Digite o CPF" required><br>
+                <div id="resultados-cliente" style='display: none'></div>
+                <input class="input-submit" type="submit" value="Verificar Cadastro">
             </form>
         </div>
-        <hr>
-        <div class="form-container">
-            <form method="POST">
-                <label for="busca-produto">Buscar Produto:</label>
-                <input type="text" id="busca-produto" name="busca_produto" placeholder="Nome ou Código do Produto">
-                <button type="submit" name="buscar">Buscar</button>
-            </form>
-        </div>
-        <?php
-        if (isset($_POST['buscar'])) {
-            $query = $_POST['busca_produto'];
-            $sql = "SELECT * FROM produto WHERE nome_prod LIKE '%$query%' OR cod_prod LIKE '%$query%'";
-            $result = mysqli_query($conexao, $sql);
-            $produtos = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $produtos[] = $row;
-            }
-            if (!empty($produtos)) {
-                echo '<div id="resultados-produto">';
-                echo '<p>Clique em cima do produto para adicionar ele ao pedido.</p>';
-                foreach ($produtos as $produto) {
-                    echo '<div onclick="adicionarProduto(' . $produto['cod_prod'] . ', \'' . $produto['nome_prod'] . '\', ' . $produto['preco_prod'] . ')">';
-                    echo 'Código: ' . $produto['cod_prod'] . ' - Nome: ' . $produto['nome_prod'] . ' - Preço: R$ ' . number_format($produto['preco_prod'], 2, ',', '.');
-                    echo '</div>';
-                }
-                echo '</div>';
-            } else {
-                echo 'Nenhum produto encontrado.';
-            }
-        }
-        ?>
-        <script>
-            // Função que será chamada para adicionar um produto ao carrinho
-            function adicionarProduto(codProd, nomeProd, precoProd) {
-                // Solicita ao usuário que informe a quantidade desejada
-                const quantidade = prompt("Informe a quantidade:", 1);
-                // Verifica se o usuário inseriu uma quantidade válida e maior que zero
-                if (quantidade != null && quantidade > 0) {
-                    // Cria um elemento <form> dinamicamente
-                    var form = document.createElement('form');
-                    form.method = 'POST'; // Define o método de envio como POST
-                    form.style.display = 'none'; // Esconde o formulário visualmente
-                    // Cria um campo de input hidden para o ID do produto
-                    var inputCod = document.createElement('input');
-                    inputCod.type = 'hidden'; // Tipo hidden para não aparecer no formulário
-                    inputCod.name = 'produto_id'; // Nome do campo que será enviado
-                    inputCod.value = codProd; // Valor do ID do produto
-                    // Cria um campo de input hidden para o nome do produto
-                    var inputNome = document.createElement('input');
-                    inputNome.type = 'hidden';
-                    inputNome.name = 'produto_nome';
-                    inputNome.value = nomeProd; // Valor do nome do produto
-                    // Cria um campo de input hidden para o preço do produto
-                    var inputPreco = document.createElement('input');
-                    inputPreco.type = 'hidden';
-                    inputPreco.name = 'produto_preco';
-                    inputPreco.value = precoProd; // Valor do preço do produto
-                    // Cria um campo de input hidden para a quantidade do produto
-                    var inputQuantidade = document.createElement('input');
-                    inputQuantidade.type = 'hidden';
-                    inputQuantidade.name = 'produto_quantidade';
-                    inputQuantidade.value = quantidade; // Valor da quantidade do produto
-                    // Cria um campo de input hidden para indicar que está adicionando o produto
-                    var inputAdd = document.createElement('input');
-                    inputAdd.type = 'hidden';
-                    inputAdd.name = 'add_produto';
-                    inputAdd.value = '1'; // Valor para identificar que está adicionando o produto
-                    // Adiciona os campos criados ao formulário
-                    form.appendChild(inputCod);
-                    form.appendChild(inputNome);
-                    form.appendChild(inputPreco);
-                    form.appendChild(inputQuantidade);
-                    form.appendChild(inputAdd);
-                    // Adiciona o formulário ao corpo (body) do documento HTML
-                    document.body.appendChild(form);
-                    // Submete o formulário automaticamente
-                    form.submit();
-                }
-            }
-        </script>
+        <div id="vava">
+            <div id="busca-produto" class="form-container-produto oculto" style="background-image: url(img/produto.png);">
+                <form id="form-busca">
+                    <h3 style="text-align: center; margin-bottom: 25px; font-size: 25px; font-weight: 600; color: #44749D;">Buscar Produto</h3>
+                    <input type="text" id='produto' class="input-text" name="busca_produto" placeholder="Nome ou Código do Produto">
+                    <div id="resultados-produto"></div>
+                    <div class="centro">
+                        <h3 style="text-align: center; margin-bottom: 5px; font-size: 25px; font-weight: 600; color: #44749D;">Pedido Atual</h3>
+                        <span id="itens-pedido"></span>
+                        <span id="total-pedido"></span>
+                        <button id="limpar-pedido" class="input-submit">Limpar Pedido</button>
+                    </div>
+                </form>
+            </div>
 
-        <div id="lista-pedido">
-            <h3>Pedido Atual</h3>
-            <form method="post">
-                <?php
-                // Inicializar variáveis
-                $total_pedido = 0;
-                // Inicializar pedido na sessão, se não estiver definido
-                if (!isset($_SESSION['pedido'])) {
-                    $_SESSION['pedido'] = [];
-                }
-                // Verificar se o botão de limpar pedido foi clicado
-                if (isset($_POST['limpar_pedido'])) {
-                    // Limpar a variável de sessão
-                    unset($_SESSION['pedido']);
-                    // Redirecionar usando JavaScript para evitar o erro de headers
-                    echo '<script>window.location.href = "' . $_SERVER['PHP_SELF'] . '";</script>';
-                    exit;
-                }
-                // Verificar se existe pedido na sessão
-                if (isset($_SESSION['pedido']) && !empty($_SESSION['pedido'])) {
-                    // Exibir os itens do pedido
-                    foreach ($_SESSION['pedido'] as $item) {
-                        echo '<div>';
-                        echo 'Nome: ' . $item['nome_prod'] . ' - Preço: R$ ' . number_format($item['preco_prod'], 2, ',', '.') . ' - Quantidade: ' . $item['quantidade'];
-                        echo '</div>';
-                        $total_pedido += $item['preco_prod'] * $item['quantidade'];
-                    }
-                    echo '<div id="total-pedido">Total: R$ ' . number_format($total_pedido, 2, ',', '.') . '</div>';
-                } else {
-                    // Caso não haja itens no pedido
-                    echo '<p>Nenhum item no pedido.</p>';
-                    echo '<p>Realiza uma busca no campo acima com o codigo ou nome do produto.</p>';
-                }
-                ?>
-                <!-- Botão para limpar o pedido -->
-                <input type="submit" name="limpar_pedido" value="Limpar Pedido">
-            </form>
-        </div>
-        <script>
-            // Caso a opção de pagamento for dinheiro, aparecer a opção de colocar o valor do dinheiro 
-            function atualizarFormaPagamento() {
-                const formaPagamento = document.querySelector('select[name="forma_pagamento"]').value;
-                const valorDinheiroDiv = document.getElementById('valor-dinheiro-div');
-                switch (formaPagamento) {
-                    case 'dinheiro':
-                        valorDinheiroDiv.style.display = 'block';
-                        break;
-                    default:
-                        valorDinheiroDiv.style.display = 'none';
-                        break;
-                }
-            }
-        </script>
-        <hr>
-        <div class="form-container" style="margin-bottom: 40px;">
-            <form method="post">
-                <h3>Finalizar Pedido</h3>
-                <label for="forma_pagamento">Forma de Pagamento:</label>
-                <select name="forma_pagamento" onchange="atualizarFormaPagamento()">
-                    <option value="dinheiro">Dinheiro</option>
-                    <option value="credito">Crédito</option>
-                    <option value="debito">Débito</option>
-                    <option value="pix">PIX</option>
-                </select>
-                <div id="valor-dinheiro-div" style="display: none;">
-                    <label for="valor_dinheiro">Valor em Dinheiro:</label>
-                    <input type="number" step="0.01" name="valor_dinheiro">
-                </div>
-                <label for="descricao_venda">Descrição:</label>
-                <textarea name="descricao_venda"></textarea>
-                <button type="submit" name="finalizar_pedido">Finalizar Pedido</button>
-            </form>
+            <div id="porra" class="form-container-finalizar oculto" style="background-image: url(img/dinero.png);">
+                <form id="form-finalizar">
+                    <h3 style="text-align: center; margin-bottom: 25px; font-size: 25px; font-weight: 600; color: #44749D;">Finalizar Pedido</h3>
+                    <label for="forma_pagamento" style="font-size: 20px !important" ;>Forma de Pagamento:</label>
+                    <select name="forma_pagamento" id="forma_pagamento" class="input-text" style='font-size: 25px; text-align: center;'>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="credito">Crédito</option>
+                        <option value="debito">Débito</option>
+                        <option value="pix">PIX</option>
+                    </select>
+                    <div id="valor-dinheiro-div">
+                        <label for="valor_dinheiro" style="font-size: 20px !important;">Valor em Dinheiro:</label>
+                        <input class="input-text" type="number" step="0.01" name="valor_dinheiro" id="valor_dinheiro">
+                    </div>
+                    <h3 style="font-size: 20px !important; font-weight: bold;">Descrição:</h3>
+                    <textarea name="descricao_venda" id="descricao_venda" cols="80" rows="8"></textarea>
+                    <br>
+                    <button name="finalizar_pedido" type="submit" class="input-submit">Finalizar Pedido</button>
+                </form>
+            </div>
         </div>
     </div>
+    <script>
+        document.getElementById('form-cpf').addEventListener('submit', function(e) {
+            e.preventDefault(); // Impede o envio normal do formulário
+
+            // Obter o valor do CPF do formulário
+            const cpf = document.getElementById('cpf').value;
+
+            // Criar um objeto XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+
+            // Configurar a requisição
+            xhr.open('POST', 'buscar_cliente.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            // Quando a requisição for completada
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Converter a resposta JSON para um objeto
+                    var data = JSON.parse(xhr.responseText);
+
+                    // Verificar o status da resposta
+                    if (data.status === 'success') {
+                        // Se o cliente for encontrado, mostrar os próximos elementos
+                        document.getElementById('cpf_cliente').classList.add('oculto');
+                        document.getElementById('busca-produto').classList.remove('oculto');
+                        document.getElementById('porra').classList.remove('oculto');
+                    } else {
+                        // Se o cliente não for encontrado, exibir a mensagem de erro
+                        alert(data.message);
+                    }
+                } else {
+                    alert('Erro na requisição. Tente novamente mais tarde.');
+                }
+            };
+
+            // Enviar a requisição com os dados do formulário
+            xhr.send('cpf=' + encodeURIComponent(cpf));
+        });
+
+
+        let timeout = null; // Variável para evitar múltiplas requisições seguidas
+
+        document.getElementById('produto').addEventListener('input', function() {
+            clearTimeout(timeout); // Limpa o tempo anterior para evitar requisições em excesso
+
+            const busca = this.value.trim(); // Pega o valor do input e remove espaços extras
+
+            if (busca.length < 2) { // Evita buscas para textos muito curtos
+                document.getElementById('resultados-produto').innerHTML = '';
+                return;
+            }
+
+            timeout = setTimeout(() => { // Adiciona um pequeno atraso para evitar múltiplas chamadas enquanto o usuário digita rápido
+                const formData = new FormData();
+                formData.append('busca', busca);
+
+                fetch('buscar_produtos.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('resultados-produto').innerHTML = data;
+                    });
+            }, 300); // Aguarda 300ms antes de enviar a requisição
+        });
+
+
+
+        //adicionar produto ao pedido 
+        function adicionarProduto(codProd, nomeProd, precoProd) {
+            const quantidade = prompt("Informe a quantidade:", 1);
+            if (quantidade != null && quantidade > 0) {
+                const formData = new FormData();
+                formData.append('produto_id', codProd);
+                formData.append('produto_nome', nomeProd);
+                formData.append('produto_preco', precoProd);
+                formData.append('produto_quantidade', quantidade);
+                formData.append('add_produto', '1');
+                fetch('sistema_venda.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        atualizarPedido(data);
+                        document.getElementById('resultados-produto').innerHTML = '';
+                        document.getElementById('produto').value = '';
+                    });
+            }
+        }
+
+        //atualizar a lista do pedido
+        function atualizarPedido(pedido) {
+            const itensPedido = document.getElementById('itens-pedido');
+            const totalPedido = document.getElementById('total-pedido');
+            itensPedido.innerHTML = '';
+            let total = 0;
+            pedido.forEach(item => {
+                itensPedido.innerHTML += `<div style="margin: 5px;">${item.nome_prod} - R$ ${item.preco_prod} x ${item.quantidade}</div>`;
+                total += item.preco_prod * item.quantidade;
+            });
+            totalPedido.textContent = `Total: R$ ${total.toFixed(2)}`;
+        }
+
+        document.getElementById('limpar-pedido').addEventListener('click', function(event) {
+            event.preventDefault(); // Impede que a página recarregue
+
+            fetch('limpar_pedido.php', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    atualizarPedido([]); // Limpa os itens do pedido na interface
+                });
+        });
+
+
+        document.getElementById('form-finalizar').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('finalizar_pedido', '1');
+            fetch('sistema_venda.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        atualizarPedido([]); // Limpa o  pedido
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                });
+        });
+    </script>
 </body>
 
 </html>

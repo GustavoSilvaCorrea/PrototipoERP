@@ -73,53 +73,6 @@
             padding: 20px;
             margin-top: 20px;
         }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        select,
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
-        input[type="submit"],
-        textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            width: 100%;
-        }
-
-        input[type="submit"] {
-            background-color: #3a3f51;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #2a2e3a;
-            /* Cor de hover mais escura */
-            box-shadow: 0 0 8px rgba(58, 63, 81, 0.6);
-            /* Sombra baseada na cor de fundo ajustada */
-        }
     </style>
 </head>
 
