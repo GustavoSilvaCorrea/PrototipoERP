@@ -30,212 +30,169 @@ session_start();
 
         .inputs {
             display: flex;
-            width: 25%;
+            width: 90%;
+
         }
 
         #search {
             flex: 1;
+            text-align: center;
             width: 300px;
-            font-weight: 600;
+            font-weight: 800;
             font-size: 20px;
-            border-radius: 40px;
-            border: 2px solid #dcdcdc;
+            border-radius: 50px;
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
             margin-right: 10px;
+            margin-bottom: 0;
         }
 
-        main {
-            display: flex;
-            justify-content: center;
+        #date {
+            background-color: #dcdcdc;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 50px;
+            border: 5px solid !important;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2 !important;
+            padding: 20px 20px;
+            /* Ajustar o espaçamento interno */
+            max-width: 300px;
+            /* Limitar a largura máxima */
+        }
+        .card-title {
+            text-align: center;
+            font-size: 25px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            margin-right: 10px;
+            color: #44749D;
         }
 
         #caixa-inventario {
             display: flex;
             flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 90% !important;
+            display: flex;
+            flex-direction: row;
             justify-content: center;
-            margin-bottom: 10px;
-            margin-top: 10px;
+            flex-wrap: wrap;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .inventory-box {
-            background-color: #333;
-            width: auto;
-            height: auto;
-            padding: 25px;
-            border: 3px solid #444;
-            border-radius: 15px;
+            width: 20%;
+            height: 300px;
+            background-image: url(img/cart.png);
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 30px;
             margin: 10px;
-            position: relative;
-            color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 5px solid;
+            border-color: #5C9AC2 #2E5674 #2E5674 #5C9AC2;
         }
 
         .inventory-box:hover {
             box-shadow: 10px 10px #44749D;
-        }
-
-        .inventory-box img {
-            width: 100%;
-            height: auto;
-            border: 3px solid #444;
-        }
-
-        #link {
-            display: flex;
-            justify-content: center;
-            text-decoration: none;
-            margin: 10px 0;
-            font-size: 16px;
-            font-weight: 500;
-            color: white;
-        }
-
-        #link:hover {
-            text-shadow: 2px 2px #44749D;
-        }
-
-        #link p {
-            font-weight: 600;
-            font-size: 15px;
-            text-transform: uppercase;
         }
     </style>
 </head>
 
 <body>
     <header id="cabecalho-main">
-    <?php include "iconpage.php" ?>
+        <?php include "iconpage.php" ?>
         <h3><?php echo $_SESSION["nome_fun"]; ?><?php include "valida_login.php"; ?></h3>
     </header>
     <?php include "navbar.php" ?>
-    <div class="content">
-        <div class="pesquisa">
-            <div class="inputs">
-                <input type="date" placeholder="Pesquise a venda" id="search" name="pesquisa">
-                <script>
-                    // Este script JavaScript se refere a barra de pesquisa
-                    document.addEventListener('DOMContentLoaded', function() {
-
-                        // Seleciona a div  com o ID 'search'
-                        var searchBar = document.getElementById('search');
-
-                        // Adiciona um evento de entrada a div 'searchBar'
-                        searchBar.addEventListener('input', function() {
-
-                            // Obtém o valor inserido no campo de pesquisa, convertido para minúsculas
-                            var inputValue = searchBar.value.toLowerCase();
-
-                            // Seleciona todos os elementos HTML com a classe 'inventory-box'
-                            var inventoryBoxes = document.querySelectorAll('.inventory-box');
-
-                            // Itera sobre todos os elementos selecionados com a classe 'inventory-box'
-                            inventoryBoxes.forEach(function(box) {
-
-                                // Seleciona o nome do funcionáro dentro do primeiro elemento <p> encontrado dentro de cada 'inventory-box', convertido para minúsculas
-                                var venda = box.querySelector('p').textContent.toLowerCase();
-
-                                // Verifica se o texto da venda inclui o valor inserido no campo de pesquisa
-                                if (venda.includes(inputValue)) {
-                                    box.style.display = 'block'; // Se sim, mostra o elemento
-                                } else {
-                                    box.style.display = 'none'; // Se não, esconde o elemento
-                                }
-                            });
-                        });
-                    });
-                </script>
-
-                <header id="filtros">
-                    <p>Filtro</p>
-                    <section>
-                        <select name="nome_fun" id="nome_fun">
-                    </section>
-                </header>
-                <?php
-                $conectar = mysqli_connect("localhost", "root", "", "erp");
-                if (!$conectar) {
-                    die("Falha na conexão: " . mysqli_connect_error());
-                }
-
-                $sql_consulta = "SELECT DISTINCT v.funcionario_cod_fun, f.nome_fun FROM venda v INNER JOIN funcionario f ON v.funcionario_cod_fun = f.cod_fun";
-
-                $resultado_consulta = mysqli_query($conectar, $sql_consulta);
-
-                if (mysqli_num_rows($resultado_consulta) > 0) {
-                    while ($linha = mysqli_fetch_assoc($resultado_consulta)) {
-                        echo "<option value='" . $linha['funcionario_cod_fun'] . "'>" . $linha['nome_fun'] . "</option>";
-                    }
-                } else {
-                    echo "<option value=''>Nenhum funcionário encontrado</option>";
-                }
-                ?>
-                </select>
-                <script>
-                    // Este script JavaScript se refere aos filtros
-                    document.addEventListener('DOMContentLoaded', function() {
-
-                        // Seleciona o elemento HTML com o ID 'nome_fun'
-                        var tipoProdSelect = document.getElementById('nome_fun');
-
-                        // Seleciona todos os elementos HTML com a classe 'inventory-box'
-                        var inventoryBoxes = document.querySelectorAll('.inventory-box');
-
-                        // Adiciona um evento de mudança ao elemento 'tipoProdSelect'
-                        tipoProdSelect.addEventListener('change', function() {
-
-                            // Obtém o valor selecionado no elemento 'tipoProdSelect'
-                            var selectedValue = tipoProdSelect.value;
-
-                            // Itera sobre todos os elementos selecionados com a classe 'inventory-box'
-                            inventoryBoxes.forEach(function(box) {
-
-                                // Obtém o valor do atributo 'data-product-type' de cada 'inventory-box'
-                                var productType = box.getAttribute('data-product-type');
-
-                                // Verifica se o valor selecionado é 'Todos' ou se corresponde ao 'data-product-type' da 'inventory-box'
-                                if (selectedValue === 'Todos' || productType === selectedValue) {
-                                    box.style.display = 'block'; // Se sim, mostra o elemento
-                                } else {
-                                    box.style.display = 'none'; // Se não, esconde o elemento
-                                }
-                            });
-                        });
-                    });
-                </script>
-
-            </div>
+    <div class="pesquisa">
+        <div class="inputs">
+            <input type="text" placeholder="Pesquise o funcionário" id="search" name="pesquisa">
+            <header id="filtros">
+                <p style='margin: 0;'>Data</p>
+                <section>
+                    <input type="date" id="date" name="pesquisa">
+                </section>
+            </header>
         </div>
-        <main>
-            <div id="caixa-inventario">
-                <?php
-                $sql_consulta = "SELECT * FROM venda";
-                $resultado = mysqli_query($conectar, $sql_consulta);
+    </div>
+    <div class="container">
+        <div id="caixa-inventario">
+            <?php
+            $conectar = mysqli_connect("localhost", "root", "", "erp");
+            $sql_consulta = "SELECT * FROM venda";
+            $resultado = mysqli_query($conectar, $sql_consulta);
 
-                if (mysqli_num_rows($resultado) > 0) {
-                    while ($linha = mysqli_fetch_assoc($resultado)) {
-                        $nome_cli = $linha["nome_cliente_venda"];
-                        $produto = $linha["produto_venda"];
-                        $data = $linha["data_venda"];
-                        $quantidade = $linha["quantidade_venda"];
-                        $valor = $linha["valor_total_venda"];
-                        $pagamento = $linha["forma_pagamento_venda"];
-                        $cod = $linha["cod_venda"];
-                        $fun = $linha["funcionario_cod_fun"];
-                        echo '<div class="inventory-box" data-product-type="' . $fun . '">';
-                        echo '<a href="detalhe_venda.php?cod=' . urlencode($cod) . '" id="link"><p>' . $data . '</p></a>';
-                        echo '<label>' . 'Cliente: ' . $nome_cli . '</label><br>';
-                        echo '<label>' . 'Produto: ' . $produto . '</label><br>';
+            if (mysqli_num_rows($resultado) > 0) {
+                while ($linha = mysqli_fetch_assoc($resultado)) {
+                    $nome_cli = $linha["nome_cliente_venda"];
+                    $produto = $linha["produto_venda"];
+                    $data = $linha["data_venda"];
+                    $quantidade = $linha["quantidade_venda"];
+                    $valor = $linha["valor_total_venda"];
+                    $desc = $linha["descricao_venda"];
+                    $pagamento = $linha["forma_pagamento_venda"];
+                    $cod = $linha["cod_venda"];
+                    $fun = $linha["funcionario_cod_fun"];
+                    echo '<div class="inventory-box" data-product-type="' . date('d/m/Y', strtotime($data)) . '">';
+                    echo '<div class="card-title">'. $nome_cli . '</div>';
+                    echo '<h4 style="text-align: center; margin-bottom: 5px; margin-top: 0;"> '. $valor .' R$</h4>';
+                    echo '<textarea readonly style="resize: none;" cols="5" rows="5">'. $desc .'</textarea>';
+                    echo '<label>' . 'Cliente: ' . $nome_cli . '</label><br>';
+                    echo '<label>' . 'Produto: ' . $produto . '</label><br>';
 
 
-                        echo '</div>';
-                    }
-                } else {
-                    echo "Nenhuma venda encontrada.";
+                    echo '</div>';
                 }
+            } else {
+                echo "Nenhuma venda encontrada.";
+            }
 
-                mysqli_close($conectar);
-                ?>
-            </div>
-        </main>
+            mysqli_close($conectar);
+            ?>
+        </div>
     </div>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var searchBar = document.getElementById('search');
+        var dateInput = document.getElementById('date');
+        var inventoryBoxes = document.querySelectorAll('.inventory-box');
+
+        searchBar.addEventListener('input', function() {
+            var inputValue = searchBar.value.toLowerCase().trim();
+
+            inventoryBoxes.forEach(function(box) {
+                var venda = box.querySelector('label').textContent.toLowerCase();
+                box.style.display = venda.includes(inputValue) ? 'block' : 'none';
+            });
+        });
+
+        dateInput.addEventListener('change', function() {
+            var selectedDate = dateInput.value;
+            if (!selectedDate) {
+                inventoryBoxes.forEach(box => box.style.display = 'flex');
+                return;
+            }
+
+            var formattedDate = selectedDate.split('-').reverse().join('/');
+
+            inventoryBoxes.forEach(function(box) {
+                var reportDate = box.getAttribute('data-product-type');
+                box.style.display = (formattedDate === reportDate) ? 'block' : 'none';
+            });
+        });
+    });
+</script>
 
 </html>

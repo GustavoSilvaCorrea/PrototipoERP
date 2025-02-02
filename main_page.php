@@ -309,6 +309,7 @@ if (!$resultado_avisos) {
                     while ($row = mysqli_fetch_assoc($resultado_pendentes)) {
                         echo "<div class='card'>
                         <div class='card-title'>" . $row['nome_for'] . "</div>
+                        
                         <div class='card-content'>
                             <strong>Produto:</strong> " . $row['item_com'] . "<br>
                             <strong>Preço:</strong> R$" . $row['valor_com'] . "<br>

@@ -311,7 +311,6 @@ if (isset($_POST['finalizar_pedido'])) {
         </div>
         <div id="vava">
             <div id="busca-produto" class="form-container-produto oculto" style="background-image: url(img/produto.png);">
-                <form id="form-busca">
                     <h3 style="text-align: center; margin-bottom: 25px; font-size: 25px; font-weight: 600; color: #44749D;">Buscar Produto</h3>
                     <input type="text" id='produto' class="input-text" name="busca_produto" placeholder="Nome ou Código do Produto">
                     <div id="resultados-produto"></div>
@@ -319,9 +318,8 @@ if (isset($_POST['finalizar_pedido'])) {
                         <h3 style="text-align: center; margin-bottom: 5px; font-size: 25px; font-weight: 600; color: #44749D;">Pedido Atual</h3>
                         <span id="itens-pedido"></span>
                         <span id="total-pedido"></span>
-                        <button id="limpar-pedido" class="input-submit">Limpar Pedido</button>
                     </div>
-                </form>
+                <button id="limpar-pedido" class="input-submit">Limpar Pedido</button>
             </div>
 
             <div id="porra" class="form-container-finalizar oculto" style="background-image: url(img/dinero.png);">

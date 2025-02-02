@@ -159,7 +159,7 @@ session_start();
                     } elseif ($rel["nivel_rel"] == 4) {
                         echo '<p class="content" style="font-weight: 600; border-color: orangered; 
           box-shadow: 2px 2px 10px rgba(255, 69, 0, 0.4); background-color:rgba(255, 69, 0, 0.4);" readonly>' . $rel['conteudo_rel'] . '</p>';
-                    } else {
+                    } else { 
                         echo '<p class="content" style="font-weight: 600; border-color: red; 
           box-shadow: 2px 2px 10px rgba(255, 0, 0, 0.5); background-color:rgba(255, 0, 0, 0.5);" readonly>' . $rel['conteudo_rel'] . '</p>';
                     }
