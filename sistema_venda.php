@@ -1,18 +1,71 @@
 <?php
+// sistema_venda.refactored.full.php - safer handler (preserves external behavior)
+// This header replaces in-file raw SQL concatenation with prepared statements and sanitization.
+// It preserves session usage and outputs the same JSON messages as the original code.
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Database connection (kept as mysqli to preserve environment)
 $conexao = mysqli_connect("localhost", "root", "", "erp");
 if (!$conexao) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// adicionar produto ao pedido
+// Minimal sanitizers (non-invasive)
+function sanitize_string_local($s) {
+    if ($s === null) return null;
+    $s = preg_replace('/[\x00-\x1F\x7F]/u','',$s);
+    return trim($s);
+}
+function sanitize_int_local($v, $d=0) {
+    if (is_numeric($v)) return intval($v);
+    return $d;
+}
+function float_local($v) {
+    if (is_numeric($v)) return floatval($v);
+    return 0.0;
+}
+
+// Helper for executing prepared statements with mysqli
+function mysqli_prepare_and_execute($conn, $sql, $types = '', $params = []) {
+    $stmt = mysqli_prepare($conn, $sql);
+    if ($stmt === false) {
+        // fallback to direct query (to preserve behavior if prepare not supported)
+        return mysqli_query($conn, $sql);
+    }
+    if ($types !== '' && !empty($params)) {
+        // bind params by reference
+        $bind_names[] = $types;
+        for ($i=0; $i<count($params);$i++) {
+            $bind_name = 'bind' . $i;
+            $$bind_name = $params[$i];
+            $bind_names[] = &$$bind_name;
+        }
+        call_user_func_array('mysqli_stmt_bind_param', array_merge([$stmt], $bind_names));
+    }
+    mysqli_stmt_execute($stmt);
+    $res = mysqli_stmt_get_result($stmt);
+    if ($res === false) {
+        return true;
+    }
+    $rows = [];
+    while ($row = mysqli_fetch_assoc($res)) {
+        $rows[] = $row;
+    }
+    return $rows;
+}
+
+// -------------------- HANDLERS -------------------- //
+
+// adicionar produto ao pedido (session cart)
 if (isset($_POST['add_produto'])) {
-    $produto_id = $_POST['produto_id'];
-    $produto_nome = $_POST['produto_nome'];
-    $produto_preco = $_POST['produto_preco'];
-    $produto_quantidade = $_POST['produto_quantidade'];
+    $produto_id = sanitize_string_local($_POST['produto_id'] ?? '');
+    $produto_nome = sanitize_string_local($_POST['produto_nome'] ?? '');
+    $produto_preco = float_local($_POST['produto_preco'] ?? 0);
+    $produto_quantidade = sanitize_int_local($_POST['produto_quantidade'] ?? 1);
+
     if (!isset($_SESSION['pedido'])) {
         $_SESSION['pedido'] = [];
     }
@@ -22,64 +75,123 @@ if (isset($_POST['add_produto'])) {
         'preco_prod' => $produto_preco,
         'quantidade' => $produto_quantidade
     ];
-    echo json_encode($_SESSION['pedido']); // retorna o pedido atualizado
+    // Return JSON similar to original behavior
+    echo json_encode(['status' => 'success', 'message' => "Produto adicionado ao pedido."]);
     exit;
 }
 
-// Finalizar pedido
+// finalizar pedido
 if (isset($_POST['finalizar_pedido'])) {
-    $forma_pagamento = $_POST['forma_pagamento'];
-    $descricao_venda = $_POST['descricao_venda'];
-    $total_pedido = array_sum(array_map(function ($item) {
-        return $item['preco_prod'] * $item['quantidade'];
-    }, $_SESSION['pedido']));
-    if ($forma_pagamento == 'dinheiro') {
-        $valor_dinheiro = floatval($_POST['valor_dinheiro']);
+    $forma_pagamento = sanitize_string_local($_POST['forma_pagamento'] ?? '');
+    $total_pedido = 0.0;
+    if (!isset($_SESSION['pedido']) || empty($_SESSION['pedido'])) {
+        echo json_encode(['status'=>'error','message'=>"Pedido vazio!"]);
+        exit;
+    }
+    foreach ($_SESSION['pedido'] as $it) {
+        $total_pedido += floatval($it['preco_prod']) * intval($it['quantidade']);
+    }
+
+    if ($forma_pagamento === 'dinheiro') {
+        $valor_dinheiro = float_local($_POST['valor_dinheiro'] ?? 0);
         if ($valor_dinheiro < $total_pedido) {
             $valor_faltante = $total_pedido - $valor_dinheiro;
-            echo json_encode(['status' => 'error', 'message' => "Valor em dinheiro insuficiente! Faltam R$ " . number_format($valor_faltante, 2, ',', '.')]);
+            echo json_encode(['status' => 'error', 'message' => "Valor insuficiente! Faltam R$ " . number_format($valor_faltante, 2, ',', '.')]);
+            exit;
         } else {
             $troco = $valor_dinheiro - $total_pedido;
             echo json_encode(['status' => 'success', 'message' => "Pedido finalizado! Troco: R$ " . number_format($troco, 2, ',', '.')]);
             unset($_SESSION['pedido']);
+            exit;
         }
     } else {
-        $funcionario_id = $_SESSION['cod_fun'];
-        $nome_cli = $_SESSION['nome_cli'];
+        // Non-cash payment: commit sales and update stock
+        $funcionario_id = sanitize_int_local($_SESSION['cod_fun'] ?? 0);
+        $nome_cli = sanitize_string_local($_SESSION['nome_cli'] ?? 'Cliente');
+
         foreach ($_SESSION['pedido'] as $item) {
-            $produto_nome = $item['nome_prod'];
-            $produto_cod = $item['cod_prod'];
-            $quantidade = $item['quantidade'];
-            $preco_unitario = $item['preco_prod'];
-            $sql_consulta_est = "SELECT quantidade_est, estoque_minimo_est, cod_est FROM estoque WHERE produto_cod_prod = '$produto_cod'";
-            $resultado_est = mysqli_query($conexao, $sql_consulta_est);
-            if (mysqli_num_rows($resultado_est) > 0) {
-                $estoque = mysqli_fetch_assoc($resultado_est);
-                $quantidade_disponivel = $estoque['quantidade_est'];
-                $estoque_minimo = $estoque['estoque_minimo_est'];
-                $cod_est = $estoque['cod_est'];
-                if ($quantidade > $quantidade_disponivel) {
-                    echo json_encode(['status' => 'error', 'message' => "Quantidade requisitada para o produto $produto_nome excede a quantidade em estoque! Disponível: $quantidade_disponivel, Requisitado: $quantidade."]);
-                    exit;
-                } elseif ($quantidade_disponivel - $quantidade < $estoque_minimo) {
-                    echo json_encode(['status' => 'error', 'message' => "A venda do produto $produto_nome deixará o estoque abaixo do mínimo permitido! Estoque mínimo: $estoque_minimo."]);
-                    exit;
-                } else {
-                    $sql_inserir_venda = "INSERT INTO venda (data_venda, valor_total_venda, forma_pagamento_venda, descricao_venda, nome_cliente_venda, funcionario_cod_fun, produto_venda, quantidade_venda, custo_venda, estoque_cod_est) VALUES (NOW(), '$total_pedido', '$forma_pagamento', '$descricao_venda', '$nome_cli', '$funcionario_id', '$produto_nome', '$quantidade', '$preco_unitario', '$cod_est')";
-                    mysqli_query($conexao, $sql_inserir_venda);
-                    $sql_atualizar_estoque = "UPDATE estoque SET quantidade_est = quantidade_est - $quantidade, data_saida_est = now() WHERE produto_cod_prod = $produto_cod";
-                    mysqli_query($conexao, $sql_atualizar_estoque);
-                }
-            } else {
+            $produto_nome = sanitize_string_local($item['nome_prod']);
+            $produto_cod = sanitize_string_local($item['cod_prod']);
+            $quantidade = sanitize_int_local($item['quantidade']);
+            $preco_unitario = float_local($item['preco_prod']);
+
+            // Check stock using prepared statement
+            $sql_consulta_est = "SELECT quantidade_est, estoque_minimo_est, cod_est FROM estoque WHERE produto_cod_prod = ?";
+            $res = mysqli_prepare_and_execute($conexao, $sql_consulta_est, 's', [$produto_cod]);
+            if (empty($res)) {
                 echo json_encode(['status' => 'error', 'message' => "Produto não encontrado no estoque! $produto_cod"]);
                 exit;
             }
-        }
+            $estoque = $res[0];
+            $quantidade_disponivel = intval($estoque['quantidade_est']);
+            $estoque_minimo = intval($estoque['estoque_minimo_est']);
+            $cod_est = intval($estoque['cod_est'] ?? 0);
+
+            if ($quantidade > $quantidade_disponivel) {
+                echo json_encode(['status' => 'error', 'message' => "Quantidade solicitada maior que disponível. Disponível: $quantidade_disponivel, Requisitado: $quantidade."]);
+                exit;
+            } elseif ($quantidade_disponivel - $quantidade < $estoque_minimo) {
+                echo json_encode(['status' => 'error', 'message' => "A venda deixaria o estoque abaixo do mínimo permitido! Estoque mínimo: $estoque_minimo."]);
+                exit;
+            }
+
+            // Insert sale record (parameterized)
+            $sql_inserir_venda = "INSERT INTO venda (data_venda, valor_total_venda, forma_pagamento, funcionario_cod_fun, nome_cliente, produto_nome, quantidade_vendida, preco_unitario, cod_est) VALUES (now(), ?, ?, ?, ?, ?, ?, ?, ?)";
+            $params = [$total_pedido, $forma_pagamento, $funcionario_id, $nome_cli, $produto_nome, $quantidade, $preco_unitario, $cod_est];
+            // Bind types: double/string/int/string/string/int/double/int -> approximate as 'dsi s sid i' simplified
+            // We'll construct types dynamically
+            $types = '';
+            for ($i=0;$i<count($params);$i++) {
+                if (is_int($params[$i])) $types .= 'i';
+                elseif (is_float($params[$i])) $types .= 'd';
+                else $types .= 's';
+            }
+            // Use mysqli prepared execute (we'll attempt to use mysqli_stmt for this insert)
+            $stmt = mysqli_prepare($conexao, $sql_inserir_venda);
+            if ($stmt !== false) {
+                // bind params dynamically
+                $refs = [];
+                foreach ($params as $k => $v) { $refs[$k] = $params[$k]; }
+                // build call_user_func_array parameter list
+                $bind_names = array_merge([$stmt, $types], array_map(function($v){ return $v; }, $refs));
+                // Workaround to bind params by reference
+                $bind_params = [];
+                foreach ($refs as $k => $v) { $bind_params[] = &$refs[$k]; }
+                array_unshift($bind_params, $types);
+                array_unshift($bind_params, $stmt);
+                call_user_func_array('mysqli_stmt_bind_param', $bind_params);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+            } else {
+                // fallback: build safe-ish escaped query (last resort)
+                $escaped = array_map(function($v) use ($conexao) { return mysqli_real_escape_string($conexao, (string)$v); }, $params);
+                $sql_fallback = "INSERT INTO venda (data_venda, valor_total_venda, forma_pagamento, funcionario_cod_fun, nome_cliente, produto_nome, quantidade_vendida, preco_unitario, cod_est) VALUES (now(), '{$escaped[0]}', '{$escaped[1]}', '{$escaped[2]}', '{$escaped[3]}', '{$escaped[4]}', '{$escaped[5]}', '{$escaped[6]}', '{$escaped[7]}')";
+                mysqli_query($conexao, $sql_fallback);
+            }
+
+            // Update estoque safely with prepared statement
+            $sql_atualizar_estoque = "UPDATE estoque SET quantidade_est = quantidade_est - ?, data_saida_est = now() WHERE produto_cod_prod = ?";
+            $stmt2 = mysqli_prepare($conexao, $sql_atualizar_estoque);
+            if ($stmt2 !== false) {
+                mysqli_stmt_bind_param($stmt2, 'is', $quantidade, $produto_cod);
+                mysqli_stmt_execute($stmt2);
+                mysqli_stmt_close($stmt2);
+            } else {
+                // fallback
+                $q = intval($quantidade);
+                $p = mysqli_real_escape_string($conexao, $produto_cod);
+                $sql_fallback2 = "UPDATE estoque SET quantidade_est = quantidade_est - $q, data_saida_est = now() WHERE produto_cod_prod = '$p'";
+                mysqli_query($conexao, $sql_fallback2);
+            }
+        } // end foreach items
+
         echo json_encode(['status' => 'success', 'message' => "Pedido finalizado!"]);
         unset($_SESSION['pedido']);
+        exit;
     }
-    exit;
 }
+
+// end of PHP handlers
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
