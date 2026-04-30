@@ -63,9 +63,6 @@ Este repositório contém o projeto desenvolvido como Trabalho de Conclusão de 
    - Inicie o servidor local.  
    - Acesse o sistema pelo navegador no endereço: `http://localhost/PrototipoERP/`.  
 
-4. **Banco de Dados**:  
-   - Execute o script SQL disponível na pasta `database/` para criar as tabelas necessárias.  
-
 ---
 
 ## 👨‍💻 Desenvolvedores  
